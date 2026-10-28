@@ -68,112 +68,191 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 /**
- * 1. Data Storage & Synchronization
+ * 1. Data Storage & Multi-User Internet Synchronization
  */
 const CIT_APP_STORAGE_VERSION = 'v5_cit_excel_2026';
 
-async function loadInitialData() {
-  const storedVersion = localStorage.getItem('cit_app_version');
+function updateSyncBadge(text, state = 'online') {
+  const badge = document.getElementById('syncStatusBadge');
+  const dot = document.getElementById('syncStatusDot');
+  if (badge) badge.textContent = text;
+  if (dot) {
+    dot.className = `sync-dot ${state}`;
+  }
+}
 
-  // If storage version mismatch, purge old local cache to remove previous dummy datesheets/students
-  if (storedVersion !== CIT_APP_STORAGE_VERSION) {
-    localStorage.removeItem('cit_system_data');
-    localStorage.setItem('cit_app_version', CIT_APP_STORAGE_VERSION);
+async function loadInitialData() {
+  updateSyncBadge("Connecting...", "syncing");
+
+  let serverData = null;
+
+  // 1. Primary: Fetch live central database from api.php (cache-busted with timestamp)
+  try {
+    const res = await fetch(`api.php?_t=${Date.now()}`, {
+      headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data && typeof data === 'object' && !data.error && data.classes) {
+        serverData = data;
+      }
+    }
+  } catch (e) {
+    // api.php not available (e.g. running offline or raw data.json)
   }
 
+  // 1b. Fallback: If api.php returned 404, try static data.json
+  if (!serverData) {
+    try {
+      const res = await fetch(`data.json?_t=${Date.now()}`, {
+        headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && typeof data === 'object' && data.classes) {
+          serverData = data;
+        }
+      }
+    } catch (e) {}
+  }
+
+  // 2. If server data was retrieved successfully:
+  if (serverData) {
+    appData = serverData;
+    if (!appData.currentSession) appData.currentSession = "2026-2027";
+    if (!appData.passouts) appData.passouts = [];
+    if (!appData.passwords) appData.passwords = { admin: "admin123", teacher: "teacher123" };
+    if (!appData.curriculum && window.CIT_CURRICULUM) appData.curriculum = CIT_CURRICULUM;
+    if (!appData.students || (!appData.students.cit1?.length && !appData.students.cit2?.length && !appData.students.cit3?.length)) {
+      if (window.DEFAULT_CIT_DATA && DEFAULT_CIT_DATA.students) {
+        appData.students = JSON.parse(JSON.stringify(DEFAULT_CIT_DATA.students));
+      }
+    }
+
+    localStorage.setItem('cit_system_data', JSON.stringify(appData));
+    localStorage.setItem('cit_app_version', CIT_APP_STORAGE_VERSION);
+    updateSyncBadge("Cloud Connected", "online");
+    return;
+  }
+
+  // 3. If offline / no internet / local file: load from local storage cache
   const local = localStorage.getItem('cit_system_data');
   if (local) {
     try {
       appData = JSON.parse(local);
-
-      // Force purge any old mock datesheets or mock students
-      let needsPersist = false;
-      if (appData.datesheets && appData.datesheets.some(d => d.id === 'ds_cit1_monthly_dec2026' || d.id === 'ds_cit1_midterm_2026' || (d.title && d.title.includes('December 2026')))) {
-        appData.datesheets = [];
-        appData.marks = {};
-        needsPersist = true;
-      }
-      if (appData.students) {
-        ['cit1', 'cit2', 'cit3'].forEach(c => {
-          if (appData.students[c] && appData.students[c].some(s => (s.name === 'Muhammad Ali' && s.roll === '101') || s.name === 'Hamza Khan' || s.name === 'Ahmed Raza' || s.name === 'Kamran Akmal')) {
-            appData.students[c] = (DEFAULT_CIT_DATA.students && DEFAULT_CIT_DATA.students[c]) || [];
-            needsPersist = true;
-          }
-        });
-      }
-
-      // If student roster is empty, seed from the official department Excel roster
-      if (!appData.students || (!appData.students.cit1?.length && !appData.students.cit2?.length && !appData.students.cit3?.length)) {
-        if (window.DEFAULT_CIT_DATA && DEFAULT_CIT_DATA.students) {
-          appData.students = JSON.parse(JSON.stringify(DEFAULT_CIT_DATA.students));
-          needsPersist = true;
-        }
-      }
-
-      if (!appData.currentSession) appData.currentSession = "2026-2027";
-      if (!appData.passouts) appData.passouts = [];
-      if (!appData.passwords) appData.passwords = { admin: "admin123", teacher: "teacher123" };
-      if (!appData.curriculum && window.CIT_CURRICULUM) appData.curriculum = CIT_CURRICULUM;
-
-      if (needsPersist) {
-        persistData();
-      }
-
-      updateSyncBadge("Saved Locally");
+      updateSyncBadge("Offline Mode", "offline");
       return;
     } catch (e) {
-      console.warn("Failed to parse local storage", e);
+      console.warn("Corrupted local storage", e);
     }
   }
 
-  // Load from data.json
-  try {
-    const res = await fetch('data.json');
-    if (res.ok) {
-      appData = await res.json();
-      if (!appData.currentSession) appData.currentSession = "2026-2027";
-      if (!appData.passouts) appData.passouts = [];
-      if (!appData.passwords) appData.passwords = { admin: "admin123", teacher: "teacher123" };
-      if (!appData.curriculum && window.CIT_CURRICULUM) appData.curriculum = CIT_CURRICULUM;
-      localStorage.setItem('cit_system_data', JSON.stringify(appData));
-      localStorage.setItem('cit_app_version', CIT_APP_STORAGE_VERSION);
-      updateSyncBadge("Loaded data.json");
-      return;
-    }
-  } catch (e) {
-    console.log("data.json not reachable, loading defaults");
-  }
-
+  // 4. Default fallback: Seed from bundled data.js
   appData = JSON.parse(JSON.stringify(DEFAULT_CIT_DATA));
   localStorage.setItem('cit_system_data', JSON.stringify(appData));
   localStorage.setItem('cit_app_version', CIT_APP_STORAGE_VERSION);
-  updateSyncBadge("Ready");
+  updateSyncBadge("Local Defaults", "offline");
 }
 
 async function persistData() {
   if (!appData) return;
+
+  // Immediate local cache
   localStorage.setItem('cit_system_data', JSON.stringify(appData));
 
+  // Sync with Server via api.php
   try {
+    updateSyncBadge("Syncing...", "syncing");
     const res = await fetch('api.php', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache'
+      },
       body: JSON.stringify(appData)
     });
+
     if (res.ok) {
-      updateSyncBadge("Synced Server");
-      return;
+      const resp = await res.json().catch(() => ({}));
+      if (resp.status === 'success') {
+        updateSyncBadge("Cloud Synced", "online");
+        return;
+      }
     }
+
+    const err = await res.json().catch(() => ({}));
+    const errMsg = err.message || "Failed to save to cloud server.";
+    showToast(errMsg, true);
+    updateSyncBadge("Server Error", "error");
   } catch (e) {
-    // Static hosting
+    updateSyncBadge("Saved Locally", "offline");
   }
-  updateSyncBadge("Saved Locally");
 }
 
-function updateSyncBadge(text) {
-  const badge = document.getElementById('syncStatusBadge');
-  if (badge) badge.textContent = text;
+// Manual or background sync to pull latest updates created by other colleagues
+async function syncWithServer(isManual = false) {
+  if (isManual) {
+    updateSyncBadge("Checking Server...", "syncing");
+  }
+
+  try {
+    const res = await fetch(`api.php?_t=${Date.now()}`, {
+      headers: { 'Cache-Control': 'no-cache' }
+    });
+
+    if (res.ok) {
+      const serverData = await res.json();
+      if (serverData && serverData.classes) {
+        const currentJson = JSON.stringify(appData);
+        const serverJson = JSON.stringify(serverData);
+
+        if (currentJson !== serverJson) {
+          appData = serverData;
+          localStorage.setItem('cit_system_data', serverJson);
+
+          // Refresh the current active view dynamically
+          if (currentUser === 'admin') {
+            const adminContent = document.getElementById('adminTabContent');
+            if (adminActiveTab === 'datesheets') renderAdminDatesheets(adminContent);
+            else if (adminActiveTab === 'results') loadCompiledClassResult();
+            else if (adminActiveTab === 'students') renderAdminStudents(adminContent);
+          } else if (currentUser === 'teacher') {
+            const teacherContent = document.getElementById('teacherTabContent');
+            if (teacherActiveTab === 'marks') renderTeacherMarksEntryTable();
+            else if (teacherActiveTab === 'result_pdf') loadTeacherResultPreview();
+            else if (teacherActiveTab === 'datesheet_pdf') renderTeacherDatesheetPdfDownload(teacherContent);
+          }
+
+          if (isManual) {
+            showToast("Updated with latest data from cloud server.");
+          }
+        } else if (isManual) {
+          showToast("Data is already up to date.");
+        }
+
+        updateSyncBadge("Cloud Synced", "online");
+        return;
+      }
+    }
+
+    if (isManual) {
+      showToast("Cloud server not reachable. Using local data.", true);
+    }
+    updateSyncBadge("Offline Mode", "offline");
+  } catch (e) {
+    if (isManual) {
+      showToast("Cannot reach cloud server. Check internet connection.", true);
+    }
+    updateSyncBadge("Offline Mode", "offline");
+  }
 }
+
+// Periodic auto-sync every 45 seconds (when tab is active and teacher is not typing)
+setInterval(() => {
+  if (document.visibilityState === 'visible' && !document.querySelector('input:focus')) {
+    syncWithServer(false);
+  }
+}, 45000);
 
 function showToast(message, isError = false) {
   const existing = document.getElementById('toastNotice');

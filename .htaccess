@@ -1,0 +1,30 @@
+# CIT Department Academic & Result Management System
+# Apache & cPanel Web Server Configuration
+
+# Disable Directory Browsing for Security
+Options -Indexes
+
+# Default Charset
+AddDefaultCharset UTF-8
+
+# Prevent Browser Caching of JSON files and API endpoints so all teachers and admin always see live cloud data
+<IfModule mod_headers.c>
+    <FilesMatch "\.(json|php)$">
+        Header set Cache-Control "no-store, no-cache, must-revalidate, max-age=0, post-check=0, pre-check=0"
+        Header set Pragma "no-cache"
+        Header set Expires "Wed, 11 Jan 1984 05:00:00 GMT"
+    </FilesMatch>
+
+    # Allow cross-device AJAX access
+    Header set Access-Control-Allow-Origin "*"
+    Header set Access-Control-Allow-Methods "GET, POST, OPTIONS"
+    Header set Access-Control-Allow-Headers "Content-Type, Cache-Control, Pragma"
+</IfModule>
+
+# Set correct MIME type for JSON
+<IfModule mod_mime.c>
+    AddType application/json .json
+</IfModule>
+
+# Ensure index.html loads by default
+DirectoryIndex index.html index.php

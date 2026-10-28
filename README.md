@@ -175,13 +175,77 @@ Designed specifically for **non-technical administrators and subject teachers**.
 
 ---
 
-## Deployment Instructions
+## Complete cPanel Deployment Guide (Online Multi-User Access)
 
-### Method A: Shared Hosting / cPanel Subdomain (with PHP)
-1. Upload all files (`index.html`, `api.php`, `data.json`, `css/`, `js/`) into your subdomain folder (e.g. `public_html/cit/`).
-2. Ensure `data.json` is writable (`chmod 666 data.json`).
-3. Teachers and administrators can access the site from any computer or mobile browser, and all changes will automatically save to `data.json`.
+When hosted on your cPanel server, the system acts as a centralized cloud portal:
+- Any teacher or administrator can access it from any phone, laptop, or computer anywhere via the internet.
+- All changes (date sheets, marks, student rosters) are saved immediately to `data.json` on the server.
+- Other colleagues automatically see the live data without needing to hard-refresh or share files manually.
 
-### Method B: Pure Static Hosting (GitHub Pages, Netlify, or Local File)
-1. Upload the files to any static host, or simply open `index.html` directly in your browser.
-2. All data saves immediately into the browser's `localStorage`.
+---
+
+### Step 1: Prepare the Files
+
+The project already contains everything required:
+- `index.html` (Main web interface)
+- `api.php` (Central cloud persistence backend with file locking & auto-backups)
+- `data.json` (Central database containing CIT students and curriculum)
+- `.htaccess` (Apache configuration: disables directory listing and prevents browser caching of live data)
+- `css/style.css` (Institutional UI styling & Landscape A4 PDF layouts)
+- `js/app.js` & `js/data.js` (Application logic and predefined course blueprints)
+
+---
+
+### Step 2: Deploy to cPanel (Choose Method A or Method B)
+
+#### Method A: Direct Upload via cPanel File Manager (Simplest & Fastest)
+1. **Log in to your cPanel Dashboard** (usually `yourdomain.com:2083` or `cpanel.yourdomain.com`).
+2. Open **File Manager** and navigate to your target folder:
+   - For your main website: open `public_html/`.
+   - For a subdomain or subdirectory (recommended): create and open `public_html/cit/` or `public_html/exams/`.
+3. Select and zip the project files on your computer (`.htaccess`, `index.html`, `api.php`, `data.json`, `css/`, `js/`).
+4. Click **Upload** in cPanel File Manager and upload your zip file.
+5. Right-click the uploaded zip file in cPanel and click **Extract**.
+6. Delete the zip file after extraction.
+
+#### Method B: Automated 1-Click Deployment via cPanel Git Version Control
+1. In cPanel, search for and open **Git™ Version Control**.
+2. Click **Create** (blue button).
+3. Fill in:
+   - **Clone URL:** `https://github.com/Abdul-Rasheed-Talal/Examination_Management_System.git`
+   - **Repository Path:** `public_html/cit` (or your desired folder)
+   - **Repository Name:** `cit_exam_system`
+4. Click **Create**.
+5. Click **Manage** &rarr; **Pull or Deploy** &rarr; **Update from Remote** to pull the latest code anytime!
+
+---
+
+### Step 3: Set File Permissions for `data.json` (Crucial)
+
+To allow teachers and administrators to save date sheets and marks across the internet, the web server needs permission to write to `data.json`:
+1. In cPanel **File Manager**, locate `data.json`.
+2. Right-click `data.json` and choose **Change Permissions**.
+3. Set the permission to **`664`** or **`666`** (User: Read/Write, Group: Read/Write, World: Read/Write).
+4. Click **Change Permissions**.
+
+---
+
+### Step 4: Verify Your Live Deployment
+
+1. Open your website in a browser:
+   `https://yourdomain.com/cit/` (or your subdomain).
+2. Test the Cloud Health Check by opening:
+   `https://yourdomain.com/cit/api.php?action=health`
+   You should see:
+   ```json
+   {
+     "status": "online",
+     "service": "CIT Examination Cloud API",
+     "file_exists": true,
+     "file_writable": true
+   }
+   ```
+3. Sign in to the portal:
+   - **Administrator:** `admin123` &rarr; Check the top header badge shows **`🟢 Cloud Connected`**.
+   - **Teacher:** `teacher123` &rarr; Enter marks for a subject and click **Save Marks Sheet**.
+   - Check from another phone or computer: the saved marks appear immediately!
