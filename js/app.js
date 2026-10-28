@@ -349,15 +349,17 @@ function renderHeaderAuth() {
   }
 
   const roleLabel = authRole === 'admin' ? 'Administrator' : 'Subject Teacher';
+  const roleShort = authRole === 'admin' ? 'Admin' : 'Teacher';
   container.innerHTML = `
-    <div style="display:flex; align-items:center; gap:0.6rem;">
+    <div style="display:flex; align-items:center; gap:0.4rem;">
       <div class="user-badge-header">
         ${icon('user')}
-        <span>${roleLabel}</span>
+        <span class="user-role-full">${roleLabel}</span>
+        <span class="user-role-short">${roleShort}</span>
       </div>
-      <button class="btn btn-outline btn-sm" style="color:#ffffff; border-color:rgba(255,255,255,0.3);" onclick="handleLogout()">
+      <button class="btn btn-outline btn-sm logout-btn" style="color:#ffffff; border-color:rgba(255,255,255,0.3);" onclick="handleLogout()" title="Sign Out">
         ${icon('logout')}
-        <span>Sign Out</span>
+        <span class="logout-btn-text">Sign Out</span>
       </button>
     </div>
   `;
@@ -644,7 +646,7 @@ function onDatesheetClassOrTypeChange() {
     const isFirst = (idx === 0);
 
     return `
-      <div style="display:flex; align-items:center; justify-content:space-between; padding: 0.4rem 0.25rem; border-bottom: 1px solid #f1f5f9; gap: 0.5rem; font-size:0.85rem; flex-wrap:wrap;">
+      <div class="datesheet-subject-row" style="display:flex; align-items:center; justify-content:space-between; padding: 0.4rem 0.25rem; border-bottom: 1px solid #f1f5f9; gap: 0.5rem; font-size:0.85rem; flex-wrap:wrap;">
         <div style="flex:1; min-width:200px;">
           <label style="display:flex; align-items:center; gap: 0.4rem; cursor:pointer; margin:0;">
             <input type="checkbox" class="sub-checkbox" value="${sub.code}" data-title="${sub.title}" data-max="${sub.maxMarks}" checked>
@@ -2699,6 +2701,7 @@ function renderTeacherMarksEntryTable() {
                 <td>${st.name}</td>
                 <td style="text-align:center;">
                   <input type="number" step="0.5" min="0" max="${maxMarks}" 
+                    inputmode="decimal"
                     class="marks-input ${isAbsent ? 'absent-mode' : ''}" 
                     data-roll="${st.roll}" 
                     id="mark_${st.roll}" 
@@ -2710,7 +2713,7 @@ function renderTeacherMarksEntryTable() {
                   ${getLiveStatusBadge(currentVal, maxMarks)}
                 </td>
                 <td style="text-align:center;">
-                  <label style="cursor:pointer; font-size:0.8rem;">
+                  <label style="cursor:pointer; font-size:0.8rem; display:inline-flex; align-items:center; gap:0.25rem;">
                     <input type="checkbox" onchange="toggleStudentAbsent('${st.roll}', this.checked)" ${isAbsent ? 'checked' : ''}> Absent
                   </label>
                 </td>
@@ -2721,8 +2724,16 @@ function renderTeacherMarksEntryTable() {
       </table>
     </div>
 
-    <div style="margin-top:1rem; display:flex; justify-content:flex-end;">
+    <!-- Desktop bottom save button -->
+    <div class="desktop-only" style="margin-top:1rem; display:flex; justify-content:flex-end;">
       <button type="button" class="btn btn-primary" onclick="saveTeacherMarks('${dsId}', '${subCode}', ${maxMarks})">
+        ${icon('check')} Save Marks Sheet
+      </button>
+    </div>
+
+    <!-- Mobile floating sticky save bar -->
+    <div class="mobile-sticky-action-bar">
+      <button type="button" class="btn btn-primary" style="width:100%; justify-content:center; padding:0.75rem;" onclick="saveTeacherMarks('${dsId}', '${subCode}', ${maxMarks})">
         ${icon('check')} Save Marks Sheet
       </button>
     </div>
