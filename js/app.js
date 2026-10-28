@@ -424,9 +424,6 @@ function renderLoginView(container) {
             <div style="position:relative;">
               <input type="password" id="loginPasswordInput" class="form-control" placeholder="Enter password" required autofocus autocomplete="current-password">
             </div>
-            <small style="display:block; margin-top:0.35rem; color:var(--text-muted); font-size:0.75rem;">
-              Default: <b>${loginSelectedRole === 'admin' ? 'admin123' : 'teacher123'}</b>
-            </small>
           </div>
 
           <button type="submit" class="btn btn-primary" style="width:100%; padding:0.7rem; font-size:0.95rem; margin-top:1.25rem;">
