@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CIT Department - Examination & Result Management System</title>
+  <meta name="description" content="Secure Examination and Result Management System for the Department of Computer Information Technology (CIT), Government College of Technology.">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Top Institutional Bar -->
+  <header class="app-header no-print">
+    <div class="header-container">
+      <div class="brand-area">
+        <div class="brand-badge">CIT</div>
+        <div>
+          <div class="brand-title">Department of Computer Information Technology</div>
+          <div class="brand-sub">Government College of Technology &bull; Examination Cell</div>
+        </div>
+      </div>
+
+      <!-- Header Right: User Info & Sign Out (populated dynamically) -->
+      <div class="header-actions">
+        <div class="sync-status" id="syncStatusWrapper" title="Storage Status">
+          <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+          <span id="syncStatusBadge">Ready</span>
+        </div>
+        <div id="headerAuthArea">
+          <!-- Injected dynamically: User badge and Logout button -->
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Dynamic Application Container -->
+  <main class="app-container" id="appRoot">
+    <div id="mainContentArea">
+      <!-- Injected dynamically by js/app.js: Login Card or Portal -->
+      <div style="text-align: center; padding: 4rem 1rem; color: var(--text-muted);">
+        <p style="font-size: 1.15rem; font-weight: 600; margin-bottom: 0.5rem;">Loading CIT Examination Portal...</p>
+        <p style="font-size: 0.85rem;">Please wait while the system components initialize.</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="no-print" style="margin-top:auto; background:#0f172a; color:#94a3b8; font-size:0.8rem; text-align:center; padding:1.25rem 1rem; border-top:1px solid #334155;">
+    <div style="max-width:1200px; margin:0 auto; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
+      <div>
+        <b>CIT Result & Datesheet Management System</b> &bull; Theory Examination Directorate
+      </div>
+      <div>
+        Classes: CIT 1st Year &bull; CIT 2nd Year &bull; CIT 3rd Year (Theory Only)
+      </div>
+      <div>
+        Standalone Web Portal &bull; WhatsApp Print & PDF Sharing Ready
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts: SheetJS Excel Reader, Predefined Curriculum & Application Logic -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

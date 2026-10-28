@@ -1,0 +1,32 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Database
+db.sqlite3
+*.sqlite3
+db.sqlite3-journal
+
+# Backups & Media (Store persistent copies outside Git)
+backups/
+media/
+staticfiles/
+
+# Virtual Environments
+.venv/
+venv/
+ENV/
+env/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Archived Old Django Project
+_django_archive/
+
+# Temporary Office Lock Files
+~$*
