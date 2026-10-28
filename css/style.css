@@ -283,12 +283,12 @@ body {
 }
 
 .btn-secondary {
-  background-color: #475569;
+  background-color: #747b86;
   color: #ffffff;
 }
 
 .btn-secondary:hover {
-  background-color: #070808;
+  background-color: #717777;
 }
 
 .btn-outline {
@@ -298,7 +298,7 @@ body {
 }
 
 .btn-outline:hover {
-  background-color: #0b0c0c;
+  background-color: #606161;
 }
 
 .btn-danger {

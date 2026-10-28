@@ -122,10 +122,25 @@ async function loadInitialData() {
     if (!appData.currentSession) appData.currentSession = "2026-2027";
     if (!appData.passouts) appData.passouts = [];
     if (!appData.passwords) appData.passwords = { admin: "admin123", teacher: "teacher123" };
-    if (!appData.curriculum && window.CIT_CURRICULUM) appData.curriculum = CIT_CURRICULUM;
+    
+    // Ensure curriculum and subjects are always available
+    const curRef = (typeof CIT_CURRICULUM !== 'undefined' ? CIT_CURRICULUM : null) || 
+                   (typeof window !== 'undefined' ? window.CIT_CURRICULUM : null);
+    if (curRef) {
+      if (!appData.curriculum) appData.curriculum = JSON.parse(JSON.stringify(curRef));
+      if (!appData.subjects) {
+        appData.subjects = {
+          cit1: curRef.cit1 ? curRef.cit1.midterm : [],
+          cit2: curRef.cit2 ? curRef.cit2.midterm : [],
+          cit3: curRef.cit3 ? curRef.cit3.midterm : []
+        };
+      }
+    }
     if (!appData.students || (!appData.students.cit1?.length && !appData.students.cit2?.length && !appData.students.cit3?.length)) {
-      if (window.DEFAULT_CIT_DATA && DEFAULT_CIT_DATA.students) {
-        appData.students = JSON.parse(JSON.stringify(DEFAULT_CIT_DATA.students));
+      const defRef = (typeof DEFAULT_CIT_DATA !== 'undefined' ? DEFAULT_CIT_DATA : null) || 
+                     (typeof window !== 'undefined' ? window.DEFAULT_CIT_DATA : null);
+      if (defRef && defRef.students) {
+        appData.students = JSON.parse(JSON.stringify(defRef.students));
       }
     }
 
@@ -275,14 +290,27 @@ function showToast(message, isError = false) {
  * 2. Curriculum & Marks Helper Functions
  */
 function getCurriculumSubjects(classId, examType) {
-  const source = (window.CIT_CURRICULUM && window.CIT_CURRICULUM[classId]) || 
-                 (appData && appData.curriculum && appData.curriculum[classId]);
+  let source = null;
+  if (typeof CIT_CURRICULUM !== 'undefined' && CIT_CURRICULUM && CIT_CURRICULUM[classId]) {
+    source = CIT_CURRICULUM[classId];
+  } else if (typeof window !== 'undefined' && window.CIT_CURRICULUM && window.CIT_CURRICULUM[classId]) {
+    source = window.CIT_CURRICULUM[classId];
+  } else if (appData && appData.curriculum && appData.curriculum[classId]) {
+    source = appData.curriculum[classId];
+  }
 
   if (source) {
     const list = source[examType] || source.midterm || [];
-    return JSON.parse(JSON.stringify(list));
+    if (list && list.length > 0) {
+      return JSON.parse(JSON.stringify(list));
+    }
   }
-  return (appData && appData.subjects && appData.subjects[classId]) || [];
+
+  if (appData && appData.subjects && appData.subjects[classId]) {
+    return JSON.parse(JSON.stringify(appData.subjects[classId]));
+  }
+
+  return [];
 }
 
 function getSubjectMaxMarks(classId, subCode, examType) {
@@ -2316,8 +2344,10 @@ function executeSessionPromotion() {
 
 function restoreDepartmentRoster() {
   if (!confirm("This will restore the 138 official CIT students from the department Excel register into CIT 1st, 2nd, and 3rd Year. Any existing marks or datesheets will not be affected. Continue?")) return;
-  if (window.DEFAULT_CIT_DATA && DEFAULT_CIT_DATA.students) {
-    appData.students = JSON.parse(JSON.stringify(DEFAULT_CIT_DATA.students));
+  const defRef = (typeof DEFAULT_CIT_DATA !== 'undefined' ? DEFAULT_CIT_DATA : null) || 
+                 (typeof window !== 'undefined' ? window.DEFAULT_CIT_DATA : null);
+  if (defRef && defRef.students) {
+    appData.students = JSON.parse(JSON.stringify(defRef.students));
     persistData();
     showToast("Restored 138 department students from the register successfully.");
     renderAdminStudents(document.getElementById('adminTabContent'));

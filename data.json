@@ -741,5 +741,609 @@
   },
   "passouts": [],
   "datesheets": [],
-  "marks": {}
+  "marks": {},
+  "curriculum": {
+    "cit1": {
+      "monthly": [
+        {
+          "code": "GEN-111",
+          "title": "Islamiat & Pak Studies",
+          "maxMarks": 20
+        },
+        {
+          "code": "TTQ-111",
+          "title": "Tarjumat-ul-Quran",
+          "maxMarks": 20
+        },
+        {
+          "code": "Eng-112",
+          "title": "English",
+          "maxMarks": 20
+        },
+        {
+          "code": "Math-123",
+          "title": "Applied Mathematics-I",
+          "maxMarks": 20
+        },
+        {
+          "code": "Phy-132",
+          "title": "Applied Physics",
+          "maxMarks": 20
+        },
+        {
+          "code": "Ch-132",
+          "title": "Applied Chemistry",
+          "maxMarks": 20
+        },
+        {
+          "code": "CIT-101",
+          "title": "Occupational Health Safety & Environment",
+          "maxMarks": 20
+        },
+        {
+          "code": "CIT-103",
+          "title": "Introduction to Computing & Application Software",
+          "maxMarks": 20
+        },
+        {
+          "code": "CIT-124",
+          "title": "Basic Electronics",
+          "maxMarks": 20
+        },
+        {
+          "code": "CIT-114",
+          "title": "Introduction to Computer Programming",
+          "maxMarks": 20
+        }
+      ],
+      "midterm": [
+        {
+          "code": "GEN-111",
+          "title": "Islamiat & Pak Studies",
+          "maxMarks": 50
+        },
+        {
+          "code": "TTQ-111",
+          "title": "Tarjumat-ul-Quran",
+          "maxMarks": 50
+        },
+        {
+          "code": "Eng-112",
+          "title": "English",
+          "maxMarks": 100
+        },
+        {
+          "code": "Math-123-A",
+          "title": "Applied Mathematics-I (Paper A)",
+          "maxMarks": 75
+        },
+        {
+          "code": "Math-123-B",
+          "title": "Applied Mathematics-I (Paper B)",
+          "maxMarks": 75
+        },
+        {
+          "code": "Phy-132",
+          "title": "Applied Physics",
+          "maxMarks": 50
+        },
+        {
+          "code": "Ch-132",
+          "title": "Applied Chemistry",
+          "maxMarks": 50
+        },
+        {
+          "code": "CIT-101",
+          "title": "Occupational Health Safety & Environment",
+          "maxMarks": 50
+        },
+        {
+          "code": "CIT-103",
+          "title": "Introduction to Computing & Application Software",
+          "maxMarks": 50
+        },
+        {
+          "code": "CIT-124",
+          "title": "Basic Electronics",
+          "maxMarks": 100
+        },
+        {
+          "code": "CIT-114",
+          "title": "Introduction to Computer Programming",
+          "maxMarks": 100
+        }
+      ],
+      "sendup": [
+        {
+          "code": "GEN-111",
+          "title": "Islamiat & Pak Studies",
+          "maxMarks": 50
+        },
+        {
+          "code": "TTQ-111",
+          "title": "Tarjumat-ul-Quran",
+          "maxMarks": 50
+        },
+        {
+          "code": "Eng-112",
+          "title": "English",
+          "maxMarks": 100
+        },
+        {
+          "code": "Math-123-A",
+          "title": "Applied Mathematics-I (Paper A)",
+          "maxMarks": 75
+        },
+        {
+          "code": "Math-123-B",
+          "title": "Applied Mathematics-I (Paper B)",
+          "maxMarks": 75
+        },
+        {
+          "code": "Phy-132",
+          "title": "Applied Physics",
+          "maxMarks": 50
+        },
+        {
+          "code": "Ch-132",
+          "title": "Applied Chemistry",
+          "maxMarks": 50
+        },
+        {
+          "code": "CIT-101",
+          "title": "Occupational Health Safety & Environment",
+          "maxMarks": 50
+        },
+        {
+          "code": "CIT-103",
+          "title": "Introduction to Computing & Application Software",
+          "maxMarks": 50
+        },
+        {
+          "code": "CIT-124",
+          "title": "Basic Electronics",
+          "maxMarks": 100
+        },
+        {
+          "code": "CIT-114",
+          "title": "Introduction to Computer Programming",
+          "maxMarks": 100
+        }
+      ]
+    },
+    "cit2": {
+      "monthly": [
+        {
+          "code": "Gen-211",
+          "title": "Islamiat & Pak Studies",
+          "maxMarks": 20
+        },
+        {
+          "code": "TTQ-211",
+          "title": "Tarjumat-ul-Quran / Civics",
+          "maxMarks": 20
+        },
+        {
+          "code": "Math-223",
+          "title": "Applied Mathematics-II",
+          "maxMarks": 20
+        },
+        {
+          "code": "Mgm-211",
+          "title": "Business Communication",
+          "maxMarks": 20
+        },
+        {
+          "code": "CIT-203",
+          "title": "Data Communication & Computer Networks",
+          "maxMarks": 20
+        },
+        {
+          "code": "CIT-273",
+          "title": "Digital Logic Design",
+          "maxMarks": 20
+        },
+        {
+          "code": "CIT-222",
+          "title": "Operating System",
+          "maxMarks": 20
+        },
+        {
+          "code": "CIT-283",
+          "title": "Database Management System",
+          "maxMarks": 20
+        },
+        {
+          "code": "CIT-293",
+          "title": "Computer Graphics Designing",
+          "maxMarks": 20
+        },
+        {
+          "code": "CIT-204",
+          "title": "Web Development",
+          "maxMarks": 20
+        }
+      ],
+      "midterm": [
+        {
+          "code": "Gen-211",
+          "title": "Islamiat & Pak Studies",
+          "maxMarks": 50
+        },
+        {
+          "code": "TTQ-211",
+          "title": "Tarjumat-ul-Quran / Civics",
+          "maxMarks": 50
+        },
+        {
+          "code": "Math-223-A",
+          "title": "Applied Mathematics-II (Paper A)",
+          "maxMarks": 75
+        },
+        {
+          "code": "Math-223-B",
+          "title": "Applied Mathematics-II (Paper B)",
+          "maxMarks": 75
+        },
+        {
+          "code": "Mgm-211",
+          "title": "Business Communication",
+          "maxMarks": 50
+        },
+        {
+          "code": "CIT-203",
+          "title": "Data Communication & Computer Networks",
+          "maxMarks": 100
+        },
+        {
+          "code": "CIT-273",
+          "title": "Digital Logic Design",
+          "maxMarks": 100
+        },
+        {
+          "code": "CIT-222",
+          "title": "Operating System",
+          "maxMarks": 50
+        },
+        {
+          "code": "CIT-283",
+          "title": "Database Management System",
+          "maxMarks": 100
+        },
+        {
+          "code": "CIT-293",
+          "title": "Computer Graphics Designing",
+          "maxMarks": 50
+        },
+        {
+          "code": "CIT-204",
+          "title": "Web Development",
+          "maxMarks": 100
+        }
+      ],
+      "sendup": [
+        {
+          "code": "Gen-211",
+          "title": "Islamiat & Pak Studies",
+          "maxMarks": 50
+        },
+        {
+          "code": "TTQ-211",
+          "title": "Tarjumat-ul-Quran / Civics",
+          "maxMarks": 50
+        },
+        {
+          "code": "Math-223-A",
+          "title": "Applied Mathematics-II (Paper A)",
+          "maxMarks": 75
+        },
+        {
+          "code": "Math-223-B",
+          "title": "Applied Mathematics-II (Paper B)",
+          "maxMarks": 75
+        },
+        {
+          "code": "Mgm-211",
+          "title": "Business Communication",
+          "maxMarks": 50
+        },
+        {
+          "code": "CIT-203",
+          "title": "Data Communication & Computer Networks",
+          "maxMarks": 100
+        },
+        {
+          "code": "CIT-273",
+          "title": "Digital Logic Design",
+          "maxMarks": 100
+        },
+        {
+          "code": "CIT-222",
+          "title": "Operating System",
+          "maxMarks": 50
+        },
+        {
+          "code": "CIT-283",
+          "title": "Database Management System",
+          "maxMarks": 100
+        },
+        {
+          "code": "CIT-293",
+          "title": "Computer Graphics Designing",
+          "maxMarks": 50
+        },
+        {
+          "code": "CIT-204",
+          "title": "Web Development",
+          "maxMarks": 100
+        }
+      ]
+    },
+    "cit3": {
+      "monthly": [
+        {
+          "code": "GEN-311",
+          "title": "Islamiat & Pak Studies",
+          "maxMarks": 20
+        },
+        {
+          "code": "CIT-322",
+          "title": "Entrepreneurship & Freelancing",
+          "maxMarks": 20
+        },
+        {
+          "code": "CIT-312",
+          "title": "Internet of Things",
+          "maxMarks": 20
+        },
+        {
+          "code": "CIT-313",
+          "title": "Network and Server Administration",
+          "maxMarks": 20
+        },
+        {
+          "code": "CIT-314",
+          "title": "Mobile Applications Development",
+          "maxMarks": 20
+        },
+        {
+          "code": "CIT-343",
+          "title": "Microprocessor Fundamentals",
+          "maxMarks": 20
+        },
+        {
+          "code": "CIT-372",
+          "title": "UI / UX Design",
+          "maxMarks": 20
+        }
+      ],
+      "midterm": [
+        {
+          "code": "GEN-311",
+          "title": "Islamiat & Pak Studies",
+          "maxMarks": 50
+        },
+        {
+          "code": "CIT-322",
+          "title": "Entrepreneurship & Freelancing",
+          "maxMarks": 50
+        },
+        {
+          "code": "CIT-312",
+          "title": "Internet of Things",
+          "maxMarks": 50
+        },
+        {
+          "code": "CIT-313",
+          "title": "Network and Server Administration",
+          "maxMarks": 50
+        },
+        {
+          "code": "CIT-314",
+          "title": "Mobile Applications Development",
+          "maxMarks": 100
+        },
+        {
+          "code": "CIT-343",
+          "title": "Microprocessor Fundamentals",
+          "maxMarks": 100
+        },
+        {
+          "code": "CIT-372",
+          "title": "UI / UX Design",
+          "maxMarks": 50
+        }
+      ],
+      "sendup": [
+        {
+          "code": "GEN-311",
+          "title": "Islamiat & Pak Studies",
+          "maxMarks": 50
+        },
+        {
+          "code": "CIT-322",
+          "title": "Entrepreneurship & Freelancing",
+          "maxMarks": 50
+        },
+        {
+          "code": "CIT-312",
+          "title": "Internet of Things",
+          "maxMarks": 50
+        },
+        {
+          "code": "CIT-313",
+          "title": "Network and Server Administration",
+          "maxMarks": 50
+        },
+        {
+          "code": "CIT-314",
+          "title": "Mobile Applications Development",
+          "maxMarks": 100
+        },
+        {
+          "code": "CIT-343",
+          "title": "Microprocessor Fundamentals",
+          "maxMarks": 100
+        },
+        {
+          "code": "CIT-372",
+          "title": "UI / UX Design",
+          "maxMarks": 50
+        }
+      ]
+    }
+  },
+  "subjects": {
+    "cit1": [
+      {
+        "code": "GEN-111",
+        "title": "Islamiat & Pak Studies",
+        "maxMarks": 50
+      },
+      {
+        "code": "TTQ-111",
+        "title": "Tarjumat-ul-Quran",
+        "maxMarks": 50
+      },
+      {
+        "code": "Eng-112",
+        "title": "English",
+        "maxMarks": 100
+      },
+      {
+        "code": "Math-123-A",
+        "title": "Applied Mathematics-I (Paper A)",
+        "maxMarks": 75
+      },
+      {
+        "code": "Math-123-B",
+        "title": "Applied Mathematics-I (Paper B)",
+        "maxMarks": 75
+      },
+      {
+        "code": "Phy-132",
+        "title": "Applied Physics",
+        "maxMarks": 50
+      },
+      {
+        "code": "Ch-132",
+        "title": "Applied Chemistry",
+        "maxMarks": 50
+      },
+      {
+        "code": "CIT-101",
+        "title": "Occupational Health Safety & Environment",
+        "maxMarks": 50
+      },
+      {
+        "code": "CIT-103",
+        "title": "Introduction to Computing & Application Software",
+        "maxMarks": 50
+      },
+      {
+        "code": "CIT-124",
+        "title": "Basic Electronics",
+        "maxMarks": 100
+      },
+      {
+        "code": "CIT-114",
+        "title": "Introduction to Computer Programming",
+        "maxMarks": 100
+      }
+    ],
+    "cit2": [
+      {
+        "code": "Gen-211",
+        "title": "Islamiat & Pak Studies",
+        "maxMarks": 50
+      },
+      {
+        "code": "TTQ-211",
+        "title": "Tarjumat-ul-Quran / Civics",
+        "maxMarks": 50
+      },
+      {
+        "code": "Math-223-A",
+        "title": "Applied Mathematics-II (Paper A)",
+        "maxMarks": 75
+      },
+      {
+        "code": "Math-223-B",
+        "title": "Applied Mathematics-II (Paper B)",
+        "maxMarks": 75
+      },
+      {
+        "code": "Mgm-211",
+        "title": "Business Communication",
+        "maxMarks": 50
+      },
+      {
+        "code": "CIT-203",
+        "title": "Data Communication & Computer Networks",
+        "maxMarks": 100
+      },
+      {
+        "code": "CIT-273",
+        "title": "Digital Logic Design",
+        "maxMarks": 100
+      },
+      {
+        "code": "CIT-222",
+        "title": "Operating System",
+        "maxMarks": 50
+      },
+      {
+        "code": "CIT-283",
+        "title": "Database Management System",
+        "maxMarks": 100
+      },
+      {
+        "code": "CIT-293",
+        "title": "Computer Graphics Designing",
+        "maxMarks": 50
+      },
+      {
+        "code": "CIT-204",
+        "title": "Web Development",
+        "maxMarks": 100
+      }
+    ],
+    "cit3": [
+      {
+        "code": "GEN-311",
+        "title": "Islamiat & Pak Studies",
+        "maxMarks": 50
+      },
+      {
+        "code": "CIT-322",
+        "title": "Entrepreneurship & Freelancing",
+        "maxMarks": 50
+      },
+      {
+        "code": "CIT-312",
+        "title": "Internet of Things",
+        "maxMarks": 50
+      },
+      {
+        "code": "CIT-313",
+        "title": "Network and Server Administration",
+        "maxMarks": 50
+      },
+      {
+        "code": "CIT-314",
+        "title": "Mobile Applications Development",
+        "maxMarks": 100
+      },
+      {
+        "code": "CIT-343",
+        "title": "Microprocessor Fundamentals",
+        "maxMarks": 100
+      },
+      {
+        "code": "CIT-372",
+        "title": "UI / UX Design",
+        "maxMarks": 50
+      }
+    ]
+  }
 }

@@ -127,6 +127,13 @@ const CIT_CURRICULUM = {
   }
 };
 
+if (typeof window !== 'undefined') {
+  window.CIT_CURRICULUM = CIT_CURRICULUM;
+}
+if (typeof globalThis !== 'undefined') {
+  globalThis.CIT_CURRICULUM = CIT_CURRICULUM;
+}
+
 const DEFAULT_CIT_DATA = {
   institution: {
     name: "Government College of Technology",
@@ -861,3 +868,10 @@ const DEFAULT_CIT_DATA = {
   datesheets: [],
   marks: {}
 };
+
+if (typeof window !== 'undefined') {
+  window.DEFAULT_CIT_DATA = DEFAULT_CIT_DATA;
+}
+if (typeof globalThis !== 'undefined') {
+  globalThis.DEFAULT_CIT_DATA = DEFAULT_CIT_DATA;
+}
