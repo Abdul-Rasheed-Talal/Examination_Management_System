@@ -72,19 +72,26 @@ document.addEventListener('DOMContentLoaded', async () => {
  */
 const CIT_APP_STORAGE_VERSION = 'v5_cit_excel_2026';
 
-function updateSyncBadge(text, state = 'online') {
+function updateSyncBadge(text, state = 'online', tooltip = '') {
   const badge = document.getElementById('syncStatusBadge');
   const dot = document.getElementById('syncStatusDot');
+  const wrapper = document.getElementById('syncStatusWrapper');
   if (badge) badge.textContent = text;
   if (dot) {
     dot.className = `sync-dot ${state}`;
   }
+  if (wrapper && tooltip) {
+    wrapper.title = tooltip;
+  }
 }
 
+let activeStorageSource = 'cloud'; // 'database', 'json_fallback', 'local_fallback'
+
 async function loadInitialData() {
-  updateSyncBadge("Connecting...", "syncing");
+  updateSyncBadge("Connecting...", "syncing", "Attempting connection to Central Database & API...");
 
   let serverData = null;
+  let detectedSource = 'json_fallback';
 
   // 1. Primary: Fetch live central database from api.php (cache-busted with timestamp)
   try {
@@ -92,6 +99,8 @@ async function loadInitialData() {
       headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
     });
     if (res.ok) {
+      const storageHeader = res.headers.get('X-Storage-Source') || '';
+      detectedSource = storageHeader.toLowerCase().includes('mysql') || storageHeader.toLowerCase().includes('database') ? 'database' : 'json_fallback';
       const data = await res.json();
       if (data && typeof data === 'object' && !data.error && data.classes) {
         serverData = data;
@@ -111,6 +120,7 @@ async function loadInitialData() {
         const data = await res.json();
         if (data && typeof data === 'object' && data.classes) {
           serverData = data;
+          detectedSource = 'json_fallback';
         }
       }
     } catch (e) {}
@@ -119,9 +129,13 @@ async function loadInitialData() {
   // 2. If server data was retrieved successfully:
   if (serverData) {
     appData = serverData;
+    activeStorageSource = detectedSource;
     if (!appData.currentSession) appData.currentSession = "2026-2027";
     if (!appData.passouts) appData.passouts = [];
     if (!appData.passwords) appData.passwords = { admin: "admin123", teacher: "teacher123" };
+    if (!appData.marks || Array.isArray(appData.marks) || typeof appData.marks !== 'object') {
+      appData.marks = {};
+    }
     
     // Ensure curriculum and subjects are always available
     const curRef = (typeof CIT_CURRICULUM !== 'undefined' ? CIT_CURRICULUM : null) || 
@@ -146,7 +160,12 @@ async function loadInitialData() {
 
     localStorage.setItem('cit_system_data', JSON.stringify(appData));
     localStorage.setItem('cit_app_version', CIT_APP_STORAGE_VERSION);
-    updateSyncBadge("Cloud Connected", "online");
+    
+    const badgeLabel = detectedSource === 'database' ? "Cloud (DB)" : "Cloud (JSON)";
+    const badgeTooltip = detectedSource === 'database'
+      ? "Priority 1 Active: Live MySQL Database (data.json auto-backup ready)" 
+      : "Priority 2 Active: JSON File Storage (Database offline or unconfigured)";
+    updateSyncBadge(badgeLabel, "online", badgeTooltip);
     return;
   }
 
@@ -155,7 +174,11 @@ async function loadInitialData() {
   if (local) {
     try {
       appData = JSON.parse(local);
-      updateSyncBadge("Offline Mode", "offline");
+      if (!appData.marks || Array.isArray(appData.marks) || typeof appData.marks !== 'object') {
+        appData.marks = {};
+      }
+      activeStorageSource = 'local_fallback';
+      updateSyncBadge("Offline Mode", "offline", "Running from browser offline cache");
       return;
     } catch (e) {
       console.warn("Corrupted local storage", e);
@@ -164,20 +187,29 @@ async function loadInitialData() {
 
   // 4. Default fallback: Seed from bundled data.js
   appData = JSON.parse(JSON.stringify(DEFAULT_CIT_DATA));
+  if (!appData.marks || Array.isArray(appData.marks) || typeof appData.marks !== 'object') {
+    appData.marks = {};
+  }
   localStorage.setItem('cit_system_data', JSON.stringify(appData));
   localStorage.setItem('cit_app_version', CIT_APP_STORAGE_VERSION);
-  updateSyncBadge("Local Defaults", "offline");
+  activeStorageSource = 'local_fallback';
+  updateSyncBadge("Local Defaults", "offline", "Loaded default CIT register");
 }
 
 async function persistData() {
-  if (!appData) return;
+  if (!appData) return false;
+
+  // Guarantee appData.marks is always a dictionary/object, never an array
+  if (!appData.marks || Array.isArray(appData.marks) || typeof appData.marks !== 'object') {
+    appData.marks = {};
+  }
 
   // Immediate local cache
   localStorage.setItem('cit_system_data', JSON.stringify(appData));
 
   // Sync with Server via api.php
   try {
-    updateSyncBadge("Syncing...", "syncing");
+    updateSyncBadge("Syncing...", "syncing", "Saving data to cloud server...");
     const res = await fetch('api.php', {
       method: 'POST',
       headers: {
@@ -190,24 +222,32 @@ async function persistData() {
     if (res.ok) {
       const resp = await res.json().catch(() => ({}));
       if (resp.status === 'success') {
-        updateSyncBadge("Cloud Synced", "online");
-        return;
+        const isDb = resp.storage === 'database';
+        activeStorageSource = isDb ? 'database' : 'json_fallback';
+        const badgeLabel = isDb ? "Cloud (DB)" : "Cloud (JSON)";
+        const badgeTooltip = isDb 
+          ? "Successfully saved to MySQL Database and mirrored to data.json backup."
+          : "Saved to data.json (Database offline or not configured).";
+        updateSyncBadge(badgeLabel, "online", badgeTooltip);
+        return true;
       }
     }
 
     const err = await res.json().catch(() => ({}));
     const errMsg = err.message || "Failed to save to cloud server.";
     showToast(errMsg, true);
-    updateSyncBadge("Server Error", "error");
+    updateSyncBadge("Server Error", "error", errMsg);
+    return false;
   } catch (e) {
-    updateSyncBadge("Saved Locally", "offline");
+    updateSyncBadge("Saved Locally", "offline", "Network unreachable. Saved in browser cache.");
+    return false;
   }
 }
 
 // Manual or background sync to pull latest updates created by other colleagues
 async function syncWithServer(isManual = false) {
   if (isManual) {
-    updateSyncBadge("Checking Server...", "syncing");
+    updateSyncBadge("Checking Server...", "syncing", "Checking cloud server for fresh updates...");
   }
 
   try {
@@ -216,6 +256,10 @@ async function syncWithServer(isManual = false) {
     });
 
     if (res.ok) {
+      const storageHeader = res.headers.get('X-Storage-Source') || '';
+      const isDb = storageHeader.toLowerCase().includes('mysql') || storageHeader.toLowerCase().includes('database');
+      activeStorageSource = isDb ? 'database' : 'json_fallback';
+
       const serverData = await res.json();
       if (serverData && serverData.classes) {
         const currentJson = JSON.stringify(appData);
@@ -239,13 +283,17 @@ async function syncWithServer(isManual = false) {
           }
 
           if (isManual) {
-            showToast("Updated with latest data from cloud server.");
+            showToast(isDb ? "Synchronized fresh data from MySQL Database." : "Synchronized fresh data from cloud file.");
           }
         } else if (isManual) {
-          showToast("Data is already up to date.");
+          showToast(isDb ? "Database is online and data is up to date." : "Data is already up to date.");
         }
 
-        updateSyncBadge("Cloud Synced", "online");
+        const badgeLabel = isDb ? "Cloud (DB)" : "Cloud (JSON)";
+        const badgeTooltip = isDb 
+          ? "Priority 1 Active: Live MySQL Database (data.json auto-backup ready)" 
+          : "Priority 2 Active: JSON File Storage (Database offline or unconfigured)";
+        updateSyncBadge(badgeLabel, "online", badgeTooltip);
         return;
       }
     }
@@ -253,7 +301,7 @@ async function syncWithServer(isManual = false) {
     if (isManual) {
       showToast("Cloud server not reachable. Using local data.", true);
     }
-    updateSyncBadge("Offline Mode", "offline");
+    updateSyncBadge("Offline Mode", "offline", "Server returned offline response.");
   } catch (e) {
     if (isManual) {
       showToast("Cannot reach cloud server. Check internet connection.", true);
@@ -2434,8 +2482,42 @@ function renderAdminSettings(container) {
         </div>
       </div>
 
-      <!-- Backup & Restore -->
       <div class="col-md-6">
+        <!-- Database & Cloud Persistence Status -->
+        <div class="card" style="margin-bottom: 1.25rem;">
+          <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
+            <span class="card-title">
+              ${icon('check')}
+              <span>Database & Cloud Persistence</span>
+            </span>
+            <span class="badge" id="adminDbStatusBadge" style="background:#e2e8f0; color:#334155; padding:0.25rem 0.6rem; border-radius:4px; font-size:0.75rem; font-weight:700;">Checking...</span>
+          </div>
+          <div class="card-body">
+            <div style="font-size:0.85rem; color:var(--text-muted); margin-bottom:0.75rem; line-height:1.45;">
+              <p><b>Dual-Tier Resilient Storage:</b></p>
+              <ul style="margin: 0.25rem 0 0.5rem 1.25rem; font-size:0.8rem;">
+                <li><b>Priority 1 (Primary):</b> MySQL Database (MariaDB / cPanel)</li>
+                <li><b>Priority 2 (Fail-Safe Fallback):</b> <code>data.json</code> file with rolling backups</li>
+              </ul>
+              Every save automatically synchronizes to MySQL and keeps <code>data.json</code> updated as a ready hot standby.
+            </div>
+
+            <div id="adminDbDiagnostics" style="background:#f8fafc; border:1px solid #e2e8f0; padding:0.75rem; border-radius:6px; font-size:0.8rem; margin-bottom:0.85rem; font-family:monospace; line-height:1.5;">
+              Loading live database connection info...
+            </div>
+
+            <div style="display:flex; flex-wrap:wrap; gap:0.5rem;">
+              <button class="btn btn-outline btn-sm" onclick="checkDatabaseHealthAdmin()">
+                ${icon('sync')} Check Live Connection
+              </button>
+              <button class="btn btn-primary btn-sm" onclick="migrateDataJsonToDbAdmin()">
+                ${icon('upload')} Migrate data.json to MySQL
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Backup & Restore -->
         <div class="card">
           <div class="card-header">
             <span class="card-title">
@@ -2466,6 +2548,101 @@ function renderAdminSettings(container) {
       </div>
     </div>
   `;
+
+  setTimeout(checkDatabaseHealthAdmin, 50);
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+async function checkDatabaseHealthAdmin() {
+  const diag = document.getElementById('adminDbDiagnostics');
+  const badge = document.getElementById('adminDbStatusBadge');
+  if (!diag) return;
+
+  diag.innerHTML = `Checking server API and database status...`;
+  try {
+    const res = await fetch(`api.php?action=health&_t=${Date.now()}`);
+    if (!res.ok) {
+      if (badge) {
+        badge.textContent = "Offline / Error";
+        badge.style.background = "#fee2e2";
+        badge.style.color = "#b91c1c";
+      }
+      diag.innerHTML = `<span style="color:#dc2626;">Server returned HTTP ${res.status}. Check PHP error logs.</span>`;
+      return;
+    }
+
+    const data = await res.json();
+    const db = data.database || {};
+    const jsonStorage = data.json_storage || {};
+
+    if (db.connected) {
+      if (badge) {
+        badge.textContent = "MySQL Connected (Priority 1)";
+        badge.style.background = "#dcfce7";
+        badge.style.color = "#15803d";
+      }
+      diag.innerHTML = `
+        <div style="color:#15803d; font-weight:700; margin-bottom:0.4rem;">Status: Connected to MySQL Database (Priority 1 Active)</div>
+        <div><b>Host:</b> ${escapeHtml(db.host || 'localhost')}</div>
+        <div><b>Database:</b> ${escapeHtml(db.database_name || '')}</div>
+        <div><b>User:</b> ${escapeHtml(db.user || '')}</div>
+        <div><b>Students:</b> ${db.stats?.counts?.students ?? 'N/A'} registered</div>
+        <div><b>Date Sheets:</b> ${db.stats?.counts?.datesheets ?? 'N/A'} created</div>
+        <div><b>Marks Entries:</b> ${db.stats?.counts?.marks_records ?? 'N/A'} recorded</div>
+        <div style="margin-top:0.35rem; color:#64748b; font-size:0.75rem;">data.json Backup: ${jsonStorage.exists ? 'Synchronized (' + Math.round((jsonStorage.size_bytes || 0)/1024) + ' KB)' : 'Missing'}</div>
+      `;
+    } else {
+      if (badge) {
+        badge.textContent = "JSON Fallback (Priority 2)";
+        badge.style.background = "#fef3c7";
+        badge.style.color = "#b45309";
+      }
+      diag.innerHTML = `
+        <div style="color:#b45309; font-weight:700; margin-bottom:0.4rem;">Status: Database Offline &mdash; Running on data.json Fallback</div>
+        <div><b>Configured:</b> ${db.configured ? 'Yes' : 'No (Credentials needed in db_config.php)'}</div>
+        <div><b>Database Name:</b> ${escapeHtml(db.database_name || 'Not set')}</div>
+        ${db.error ? `<div style="color:#dc2626; margin-top:0.25rem;"><b>Reason:</b> ${escapeHtml(db.error)}</div>` : ''}
+        <div style="margin-top:0.35rem; color:#15803d;"><b>data.json Status:</b> Writable & Ready (${Math.round((jsonStorage.size_bytes || 0)/1024)} KB)</div>
+      `;
+    }
+  } catch (e) {
+    if (badge) {
+      badge.textContent = "Unreachable";
+      badge.style.background = "#fee2e2";
+      badge.style.color = "#b91c1c";
+    }
+    diag.innerHTML = `<span style="color:#dc2626;">Cannot reach API. Check network connection or server PHP setup.</span>`;
+  }
+}
+
+async function migrateDataJsonToDbAdmin() {
+  if (!confirm("Are you sure you want to migrate all data from data.json into your MySQL Database now? This will synchronize all students, datesheets, and marks into MySQL.")) {
+    return;
+  }
+
+  showToast("Migrating data.json into MySQL database...");
+  try {
+    const res = await fetch(`api.php?action=migrate_to_db&_t=${Date.now()}`);
+    const data = await res.json();
+    if (res.ok && data.status === 'success') {
+      showToast(data.message || "Migration completed successfully!");
+      checkDatabaseHealthAdmin();
+      syncWithServer(true);
+    } else {
+      showToast(data.message || "Migration failed. Check database credentials in db_config.php.", true);
+      checkDatabaseHealthAdmin();
+    }
+  } catch (e) {
+    showToast("Migration request failed: " + e.message, true);
+  }
 }
 
 function savePortalPasswords() {
@@ -2821,8 +2998,11 @@ function handleMarksKeyNav(e, index) {
   }
 }
 
-function saveTeacherMarks(dsId, subCode, maxMarks) {
-  appData.marks = appData.marks || {};
+async function saveTeacherMarks(dsId, subCode, maxMarks) {
+  // Ensure marks is strictly an object map, never an array
+  if (!appData.marks || Array.isArray(appData.marks) || typeof appData.marks !== 'object') {
+    appData.marks = {};
+  }
   appData.marks[dsId] = appData.marks[dsId] || {};
   appData.marks[dsId][subCode] = appData.marks[dsId][subCode] || {};
 
@@ -2859,9 +3039,26 @@ function saveTeacherMarks(dsId, subCode, maxMarks) {
 
   if (hasError) return;
 
-  persistData();
-  showToast(`Marks saved for ${subCode} (${enteredCount} students)`);
-  renderTeacherMarksEntryTable();
+  // Visual feedback while cloud saving is in progress
+  const saveButtons = document.querySelectorAll('#teacherMarksSheetArea button');
+  saveButtons.forEach(btn => {
+    btn.disabled = true;
+    btn.innerHTML = `${icon('sync')} Saving Marks...`;
+  });
+
+  try {
+    const saved = await persistData();
+    if (saved) {
+      const storageType = (activeStorageSource === 'database') ? 'Database' : 'Cloud';
+      showToast(`Marks saved successfully to ${storageType} for ${subCode} (${enteredCount} students)`);
+    } else {
+      showToast(`Saved to browser cache, but could not sync to server. Check connection.`, true);
+    }
+  } catch (err) {
+    showToast(`Error saving marks: ${err.message}`, true);
+  } finally {
+    renderTeacherMarksEntryTable();
+  }
 }
 
 // Teacher Tab 2: Download / Print Result PDF (to share on WhatsApp)
