@@ -1585,5 +1585,58 @@
                 "maxMarks": 50
             }
         ]
-    }
+    },
+    "teachers": [
+        {
+            "id": "tch_default",
+            "name": "Engr. CIT Subject Teacher",
+            "username": "teacher",
+            "password": "teacher123",
+            "assignedClasses": [
+                "cit1",
+                "cit2",
+                "cit3"
+            ],
+            "assignedSubjects": {
+                "cit1": [
+                    "GEN-111",
+                    "TTQ-111",
+                    "Eng-112",
+                    "Math-123-A",
+                    "Math-123-B",
+                    "Phy-132",
+                    "Ch-132",
+                    "CIT-101",
+                    "CIT-103",
+                    "CIT-124",
+                    "CIT-114"
+                ],
+                "cit2": [
+                    "Gen-211",
+                    "TTQ-211",
+                    "Math-223-A",
+                    "Math-223-B",
+                    "Mgm-211",
+                    "CIT-203",
+                    "CIT-273",
+                    "CIT-222",
+                    "CIT-283",
+                    "CIT-293",
+                    "CIT-204"
+                ],
+                "cit3": [
+                    "GEN-311",
+                    "CIT-322",
+                    "CIT-312",
+                    "CIT-313",
+                    "CIT-314",
+                    "CIT-343",
+                    "CIT-372"
+                ]
+            },
+            "createdAt": "2026-10-31"
+        }
+    ],
+    "sheetLocks": {},
+    "editRequests": []
 }

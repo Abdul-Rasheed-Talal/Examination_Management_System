@@ -168,6 +168,55 @@ class CITDatabase {
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
             ");
 
+            // 6. Relational Table: Teachers
+            $this->pdo->exec("
+                CREATE TABLE IF NOT EXISTS `cit_teachers` (
+                    `id` VARCHAR(50) NOT NULL PRIMARY KEY,
+                    `name` VARCHAR(150) NOT NULL,
+                    `username` VARCHAR(80) NOT NULL UNIQUE,
+                    `password` VARCHAR(255) NOT NULL,
+                    `assigned_classes` TEXT NULL,
+                    `assigned_subjects` LONGTEXT NULL,
+                    `created_at` VARCHAR(50) NULL,
+                    `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                    INDEX `idx_username` (`username`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+            ");
+
+            // 7. Relational Table: Sheet Locks
+            $this->pdo->exec("
+                CREATE TABLE IF NOT EXISTS `cit_sheet_locks` (
+                    `lock_key` VARCHAR(150) NOT NULL PRIMARY KEY,
+                    `datesheet_id` VARCHAR(100) NOT NULL,
+                    `subject_code` VARCHAR(50) NOT NULL,
+                    `is_locked` TINYINT(1) DEFAULT 1,
+                    `locked_by` VARCHAR(150) NULL,
+                    `locked_at` VARCHAR(50) NULL,
+                    `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                    INDEX `idx_lock_ds` (`datesheet_id`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+            ");
+
+            // 8. Relational Table: Edit Requests
+            $this->pdo->exec("
+                CREATE TABLE IF NOT EXISTS `cit_edit_requests` (
+                    `id` VARCHAR(50) NOT NULL PRIMARY KEY,
+                    `datesheet_id` VARCHAR(100) NOT NULL,
+                    `subject_code` VARCHAR(50) NOT NULL,
+                    `class_id` VARCHAR(20) NOT NULL,
+                    `teacher_username` VARCHAR(80) NOT NULL,
+                    `teacher_name` VARCHAR(150) NULL,
+                    `reason` TEXT NOT NULL,
+                    `status` VARCHAR(20) DEFAULT 'pending',
+                    `created_at` VARCHAR(50) NULL,
+                    `reviewed_at` VARCHAR(50) NULL,
+                    `reviewed_by` VARCHAR(80) NULL,
+                    `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                    INDEX `idx_req_status` (`status`),
+                    INDEX `idx_req_teacher` (`teacher_username`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+            ");
+
             $this->schemaReady = true;
 
             // Check if database is empty. If empty, auto-migrate existing data.json into MySQL!
@@ -362,6 +411,94 @@ class CITDatabase {
                 $settingStmt->execute([':key' => 'passwords', ':val' => json_encode($data['passwords'], JSON_UNESCAPED_UNICODE)]);
             }
 
+            // 6. Synchronize teachers table
+            if (isset($data['teachers']) && is_array($data['teachers'])) {
+                $teacherStmt = $this->pdo->prepare("
+                    INSERT INTO `cit_teachers` (`id`, `name`, `username`, `password`, `assigned_classes`, `assigned_subjects`, `created_at`)
+                    VALUES (:id, :name, :username, :password, :classes, :subjects, :created_at)
+                    ON DUPLICATE KEY UPDATE
+                        `name` = VALUES(`name`),
+                        `password` = VALUES(`password`),
+                        `assigned_classes` = VALUES(`assigned_classes`),
+                        `assigned_subjects` = VALUES(`assigned_subjects`),
+                        `updated_at` = NOW()
+                ");
+
+                foreach ($data['teachers'] as $tch) {
+                    if (!empty($tch['id']) && !empty($tch['username'])) {
+                        $teacherStmt->execute([
+                            ':id' => $tch['id'],
+                            ':name' => isset($tch['name']) ? $tch['name'] : $tch['username'],
+                            ':username' => trim($tch['username']),
+                            ':password' => isset($tch['password']) ? $tch['password'] : '',
+                            ':classes' => isset($tch['assignedClasses']) ? json_encode($tch['assignedClasses'], JSON_UNESCAPED_UNICODE) : '[]',
+                            ':subjects' => isset($tch['assignedSubjects']) ? json_encode($tch['assignedSubjects'], JSON_UNESCAPED_UNICODE) : '{}',
+                            ':created_at' => isset($tch['createdAt']) ? $tch['createdAt'] : date('Y-m-d H:i:s')
+                        ]);
+                    }
+                }
+            }
+
+            // 7. Synchronize sheet locks table
+            if (isset($data['sheetLocks']) && is_array($data['sheetLocks'])) {
+                $lockStmt = $this->pdo->prepare("
+                    INSERT INTO `cit_sheet_locks` (`lock_key`, `datesheet_id`, `subject_code`, `is_locked`, `locked_by`, `locked_at`)
+                    VALUES (:lock_key, :datesheet_id, :subject_code, :is_locked, :locked_by, :locked_at)
+                    ON DUPLICATE KEY UPDATE
+                        `is_locked` = VALUES(`is_locked`),
+                        `locked_by` = VALUES(`locked_by`),
+                        `locked_at` = VALUES(`locked_at`),
+                        `updated_at` = NOW()
+                ");
+
+                foreach ($data['sheetLocks'] as $key => $lockInfo) {
+                    if (is_array($lockInfo) && isset($lockInfo['locked'])) {
+                        $parts = explode('_', $key, 2);
+                        $dsId = isset($lockInfo['dsId']) ? $lockInfo['dsId'] : (isset($parts[0]) ? $parts[0] : '');
+                        $subCode = isset($lockInfo['subCode']) ? $lockInfo['subCode'] : (isset($parts[1]) ? $parts[1] : '');
+                        $lockStmt->execute([
+                            ':lock_key' => $key,
+                            ':datesheet_id' => $dsId,
+                            ':subject_code' => $subCode,
+                            ':is_locked' => $lockInfo['locked'] ? 1 : 0,
+                            ':locked_by' => isset($lockInfo['lockedBy']) ? $lockInfo['lockedBy'] : '',
+                            ':locked_at' => isset($lockInfo['lockedAt']) ? $lockInfo['lockedAt'] : date('Y-m-d H:i:s')
+                        ]);
+                    }
+                }
+            }
+
+            // 8. Synchronize edit requests table
+            if (isset($data['editRequests']) && is_array($data['editRequests'])) {
+                $reqStmt = $this->pdo->prepare("
+                    INSERT INTO `cit_edit_requests` (`id`, `datesheet_id`, `subject_code`, `class_id`, `teacher_username`, `teacher_name`, `reason`, `status`, `created_at`, `reviewed_at`, `reviewed_by`)
+                    VALUES (:id, :datesheet_id, :subject_code, :class_id, :teacher_username, :teacher_name, :reason, :status, :created_at, :reviewed_at, :reviewed_by)
+                    ON DUPLICATE KEY UPDATE
+                        `status` = VALUES(`status`),
+                        `reviewed_at` = VALUES(`reviewed_at`),
+                        `reviewed_by` = VALUES(`reviewed_by`),
+                        `updated_at` = NOW()
+                ");
+
+                foreach ($data['editRequests'] as $req) {
+                    if (!empty($req['id'])) {
+                        $reqStmt->execute([
+                            ':id' => $req['id'],
+                            ':datesheet_id' => isset($req['dsId']) ? $req['dsId'] : '',
+                            ':subject_code' => isset($req['subCode']) ? $req['subCode'] : '',
+                            ':class_id' => isset($req['classId']) ? $req['classId'] : '',
+                            ':teacher_username' => isset($req['teacherUsername']) ? $req['teacherUsername'] : '',
+                            ':teacher_name' => isset($req['teacherName']) ? $req['teacherName'] : '',
+                            ':reason' => isset($req['reason']) ? $req['reason'] : '',
+                            ':status' => isset($req['status']) ? $req['status'] : 'pending',
+                            ':created_at' => isset($req['createdAt']) ? $req['createdAt'] : date('Y-m-d H:i:s'),
+                            ':reviewed_at' => isset($req['reviewedAt']) ? $req['reviewedAt'] : null,
+                            ':reviewed_by' => isset($req['reviewedBy']) ? $req['reviewedBy'] : null
+                        ]);
+                    }
+                }
+            }
+
             $this->pdo->commit();
             return true;
         } catch (PDOException $e) {
@@ -411,6 +548,14 @@ class CITDatabase {
             // Count marks
             $q3 = $this->pdo->query("SELECT COUNT(*) as c FROM `cit_marks`");
             if ($q3) $stats['counts']['marks_records'] = (int)$q3->fetch()['c'];
+
+            // Count teachers
+            $qTeacher = $this->pdo->query("SELECT COUNT(*) as c FROM `cit_teachers`");
+            if ($qTeacher) $stats['counts']['teachers'] = (int)$qTeacher->fetch()['c'];
+
+            // Count pending edit requests
+            $qReq = $this->pdo->query("SELECT COUNT(*) as c FROM `cit_edit_requests` WHERE `status` = 'pending'");
+            if ($qReq) $stats['counts']['pending_edit_requests'] = (int)$qReq->fetch()['c'];
 
             // Last updated timestamp
             $q4 = $this->pdo->query("SELECT `updated_at` FROM `cit_app_store` WHERE `id` = 1");

@@ -1,0 +1,251 @@
+[
+  {
+    "id": "ds_cit3_1793375835220",
+    "classId": "cit3",
+    "examType": "monthly",
+    "examTypeName": "Monthly Test",
+    "title": "Monthly Test October 2026",
+    "session": "2026-2027",
+    "createdAt": "2026-10-30",
+    "items": [
+      {
+        "code": "GEN-311",
+        "title": "Islamiat & Pak Studies",
+        "maxMarks": 20,
+        "date": "2026-10-19",
+        "day": "Monday",
+        "time": ""
+      },
+      {
+        "code": "CIT-313",
+        "title": "Network and Server Administration",
+        "maxMarks": 20,
+        "date": "2026-10-20",
+        "day": "Tuesday",
+        "time": ""
+      },
+      {
+        "code": "CIT-322",
+        "title": "Entrepreneurship & Freelancing",
+        "maxMarks": 20,
+        "date": "2026-10-21",
+        "day": "Wednesday",
+        "time": ""
+      },
+      {
+        "code": "CIT-314",
+        "title": "Mobile Applications Development",
+        "maxMarks": 20,
+        "date": "2026-10-22",
+        "day": "Thursday",
+        "time": ""
+      },
+      {
+        "code": "CIT-343",
+        "title": "Microprocessor Fundamentals",
+        "maxMarks": 20,
+        "date": "2026-10-23",
+        "day": "Friday",
+        "time": ""
+      },
+      {
+        "code": "CIT-372",
+        "title": "UI / UX Design",
+        "maxMarks": 20,
+        "date": "2026-10-24",
+        "day": "Saturday",
+        "time": ""
+      },
+      {
+        "code": "CIT-312",
+        "title": "Internet of Things",
+        "maxMarks": 20,
+        "date": "2026-10-26",
+        "day": "Monday",
+        "time": ""
+      }
+    ]
+  },
+  {
+    "id": "ds_cit2_1793297805739",
+    "classId": "cit2",
+    "examType": "monthly",
+    "examTypeName": "Monthly Test",
+    "title": "Monthly Test October 2026",
+    "session": "2026-2027",
+    "createdAt": "2026-10-29",
+    "items": [
+      {
+        "code": "Mgm-211",
+        "title": "Business Communication",
+        "maxMarks": 20,
+        "date": "2026-10-19",
+        "day": "Monday",
+        "time": ""
+      },
+      {
+        "code": "CIT-273",
+        "title": "Digital Logic Design",
+        "maxMarks": 20,
+        "date": "2026-10-20",
+        "day": "Tuesday",
+        "time": ""
+      },
+      {
+        "code": "Gen-211",
+        "title": "Islamiat & Pak Studies",
+        "maxMarks": 20,
+        "date": "2026-10-21",
+        "day": "Wednesday",
+        "time": ""
+      },
+      {
+        "code": "Math-223",
+        "title": "Applied Mathematics-II",
+        "maxMarks": 20,
+        "date": "2026-10-22",
+        "day": "Thursday",
+        "time": ""
+      },
+      {
+        "code": "TTQ-211",
+        "title": "Tarjumat-ul-Quran / Civics",
+        "maxMarks": 20,
+        "date": "2026-10-23",
+        "day": "Friday",
+        "time": ""
+      },
+      {
+        "code": "CIT-222",
+        "title": "Operating System",
+        "maxMarks": 20,
+        "date": "2026-10-24",
+        "day": "Saturday",
+        "time": ""
+      },
+      {
+        "code": "CIT-204",
+        "title": "Web Development",
+        "maxMarks": 20,
+        "date": "2026-10-26",
+        "day": "Monday",
+        "time": ""
+      },
+      {
+        "code": "CIT-283",
+        "title": "Database Management System",
+        "maxMarks": 20,
+        "date": "2026-10-27",
+        "day": "Tuesday",
+        "time": ""
+      },
+      {
+        "code": "CIT-203",
+        "title": "Data Communication & Computer Networks",
+        "maxMarks": 20,
+        "date": "2026-10-28",
+        "day": "Wednesday",
+        "time": ""
+      },
+      {
+        "code": "CIT-293",
+        "title": "Computer Graphics Designing",
+        "maxMarks": 20,
+        "date": "2026-10-29",
+        "day": "Thursday",
+        "time": ""
+      }
+    ]
+  },
+  {
+    "id": "ds_cit1_1793254029425",
+    "classId": "cit1",
+    "examType": "monthly",
+    "examTypeName": "Monthly Test",
+    "title": "Monthly Test October 2026",
+    "session": "2026-2027",
+    "createdAt": "2026-10-29",
+    "items": [
+      {
+        "code": "CIT-114",
+        "title": "Introduction to Computer Programming",
+        "maxMarks": 20,
+        "date": "2026-10-19",
+        "day": "Monday",
+        "time": ""
+      },
+      {
+        "code": "Math-123",
+        "title": "Applied Mathematics-I",
+        "maxMarks": 20,
+        "date": "2026-10-20",
+        "day": "Tuesday",
+        "time": ""
+      },
+      {
+        "code": "GEN-111",
+        "title": "Islamiat & Pak Studies",
+        "maxMarks": 20,
+        "date": "2026-10-21",
+        "day": "Wednesday",
+        "time": ""
+      },
+      {
+        "code": "CIT-103",
+        "title": "Introduction to Computing & Application Software",
+        "maxMarks": 20,
+        "date": "2026-10-22",
+        "day": "Thursday",
+        "time": ""
+      },
+      {
+        "code": "CIT-101",
+        "title": "Occupational Health Safety & Environment",
+        "maxMarks": 20,
+        "date": "2026-10-23",
+        "day": "Friday",
+        "time": ""
+      },
+      {
+        "code": "TTQ-111",
+        "title": "Tarjumat-ul-Quran",
+        "maxMarks": 20,
+        "date": "2026-10-24",
+        "day": "Saturday",
+        "time": ""
+      },
+      {
+        "code": "Ch-132",
+        "title": "Applied Chemistry",
+        "maxMarks": 20,
+        "date": "2026-10-26",
+        "day": "Monday",
+        "time": ""
+      },
+      {
+        "code": "Phy-132",
+        "title": "Applied Physics",
+        "maxMarks": 20,
+        "date": "2026-10-27",
+        "day": "Tuesday",
+        "time": ""
+      },
+      {
+        "code": "Eng-112",
+        "title": "English",
+        "maxMarks": 20,
+        "date": "2026-10-28",
+        "day": "Wednesday",
+        "time": ""
+      },
+      {
+        "code": "CIT-124",
+        "title": "Basic Electronics",
+        "maxMarks": 20,
+        "date": "2026-10-29",
+        "day": "Thursday",
+        "time": ""
+      }
+    ]
+  }
+]

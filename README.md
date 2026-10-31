@@ -8,14 +8,16 @@ Designed specifically for **non-technical administrators and subject teachers**.
 
 ## Key Features
 
-1. **Password-Protected Roles:**
-   - **Administrator Portal:** Full control over date sheets, student rosters, session promotion, complete class results, rankings, PDF generation, passwords, and backups.
-   - **Subject Teacher Portal:** Simple interface to enter subject test marks, plus one-click download/print of the official Result PDF and Date Sheet PDF to share directly with students via WhatsApp or noticeboards.
+1. **Multi-User Role-Based Access Control:**
+   - **Administrator Portal:** Full control over date sheets, student rosters, session promotion, complete class results, rankings, PDF generation, passwords, teacher user management, marks entry/override, sheet locks, and unlock approvals.
+   - **Subject Teacher Portal:** Dedicated teacher sign in via assigned username & password. Teachers only have access to enter marks for their specifically assigned classes and subjects, and can download individual subject marksheet PDFs separately.
+   - **Teacher Account Management:** Administrator creates, edits, and deletes teacher accounts (`tariq`, `aslam`, etc.), sets passwords, and assigns them to specific classes and curriculum subjects.
+   - **Marks Locking & Request Workflow:** When a teacher submits marks, the marks sheet is automatically locked to prevent alterations. If mistakes occur, the teacher can submit an Edit Request to the Administrator. The Administrator can approve and unlock the sheet with 1 click, allowing the teacher to correct and re-lock.
 
-   | Role | Default Password | What They Can Do |
-   | :--- | :---: | :--- |
-   | **Administrator** | `admin123` | Create date sheets, manage student rosters session-wise, execute annual promotions, view and print results, change passwords, and download backups. |
-   | **Subject Teacher** | `teacher123` | Enter and save student marks for their subject, and download/print Result & Date Sheet PDFs to share on WhatsApp. |
+   | Role | Login Method | What They Can Do |
+   | :--- | :--- | :--- |
+   | **Administrator** | Password (`admin123` or custom) | Full departmental power: create users, assign classes/subjects, enter marks for any subject, lock/unlock sheets, approve edit requests, create date sheets, manage rosters, and configure settings. |
+   | **Subject Teacher** | Assigned Username & Password | Enter marks only for assigned subjects and classes, download individual Subject Marks Sheet (Award List) PDFs separately, and submit edit requests when sheets are locked. |
 
    *(Both passwords can be changed at any time in the Admin Settings tab).*
 
@@ -70,9 +72,9 @@ Designed specifically for **non-technical administrators and subject teachers**.
 | `GEN-111` | Islamiat & Pak Studies | **20** | **50** | **50** |
 | `TTQ-111` | Tarjumat-ul-Quran | **20** | **50** | **50** |
 | `Eng-112` | English | **20** | **100** | **100** |
-| `Math-123` | Applied Mathematics-I *(Single Paper)* | **20** | — | — |
-| `Math-123-A` | Applied Mathematics-I *(Paper A)* | — | **75** | **75** |
-| `Math-123-B` | Applied Mathematics-I *(Paper B)* | — | **75** | **75** |
+| `Math-123` | Applied Mathematics-I *(Single Paper)* | **20** | â€” | â€” |
+| `Math-123-A` | Applied Mathematics-I *(Paper A)* | â€” | **75** | **75** |
+| `Math-123-B` | Applied Mathematics-I *(Paper B)* | â€” | **75** | **75** |
 | `Phy-132` | Applied Physics | **20** | **50** | **50** |
 | `Ch-132` | Applied Chemistry | **20** | **50** | **50** |
 | `CIT-101` | Occupational Health Safety & Environment | **20** | **50** | **50** |
@@ -81,16 +83,16 @@ Designed specifically for **non-technical administrators and subject teachers**.
 | `CIT-114` | Introduction to Computer Programming | **20** | **100** | **100** |
 
 *Note: Total Mid-Term & Send-Up Theory Marks for CIT 1st Year = 750 Marks (Math Total = 150 Marks).*  
-*(Excluded: `CIT-141` Computer & Peripheral Maintenance — practical only)*
+*(Excluded: `CIT-141` Computer & Peripheral Maintenance â€” practical only)*
 
 ### CIT 2nd Year (Theory)
 | Subject Code | Subject Title | Monthly Test | Mid-Term | Send-Up (Sandup) |
 | :--- | :--- | :---: | :---: | :---: |
 | `Gen-211` | Islamiat & Pak Studies | **20** | **50** | **50** |
 | `TTQ-211` | Tarjumat-ul-Quran / Civics | **20** | **50** | **50** |
-| `Math-223` | Applied Mathematics-II *(Single Paper)* | **20** | — | — |
-| `Math-223-A` | Applied Mathematics-II *(Paper A)* | — | **75** | **75** |
-| `Math-223-B` | Applied Mathematics-II *(Paper B)* | — | **75** | **75** |
+| `Math-223` | Applied Mathematics-II *(Single Paper)* | **20** | â€” | â€” |
+| `Math-223-A` | Applied Mathematics-II *(Paper A)* | â€” | **75** | **75** |
+| `Math-223-B` | Applied Mathematics-II *(Paper B)* | â€” | **75** | **75** |
 | `Mgm-211` | Business Communication | **20** | **50** | **50** |
 | `CIT-203` | Data Communication & Computer Networks | **20** | **100** | **100** |
 | `CIT-273` | Digital Logic Design | **20** | **100** | **100** |
@@ -113,7 +115,7 @@ Designed specifically for **non-technical administrators and subject teachers**.
 | `CIT-372` | UI / UX Design | **20** | **50** | **50** |
 
 *Note: Total Mid-Term & Send-Up Theory Marks for CIT 3rd Year = 450 Marks.*  
-*(Excluded: `CIT-381` Software Quality Assurance & `CIT-392` Project — practical only)*
+*(Excluded: `CIT-381` Software Quality Assurance & `CIT-392` Project â€” practical only)*
 
 ---
 
@@ -155,7 +157,7 @@ Designed specifically for **non-technical administrators and subject teachers**.
 1. Teacher signs in with password: `teacher123`.
 2. Selects Class &rarr; Scheduled Assessment &rarr; Respective Subject.
 3. The student list loads automatically with the subject's maximum marks (20, 50, 75, or 100).
-4. Teacher enters marks for each student (use **Enter** or **Down Arrow (↓)** to jump quickly to the next student).
+4. Teacher enters marks for each student (use **Enter** or **Down Arrow (â†“)** to jump quickly to the next student).
 5. If a student is absent, check the **Absent** box.
 6. Click **Save Marks Sheet**.
 
@@ -169,7 +171,7 @@ Designed specifically for **non-technical administrators and subject teachers**.
 3. **Landscape A4 PDF Layout (All Columns Guaranteed to Fit):**
    - Click **Print / PDF Preview** or **Print / Save as PDF (Landscape)** to open the high-resolution, institutional merit list document.
    - Designed specifically with `@page { size: A4 landscape; margin: 4mm 5mm; }` and proportional column widths (`table-layout: fixed; width: 100%`).
-   - All 18–19 columns (Rank, Roll, Student Name, all 10–11 curriculum theory subjects, Total Obtained, Percentage, Grade, and Status) fit completely onto the page without horizontal cut-off or clipping.
+   - All 18â€“19 columns (Rank, Roll, Student Name, all 10â€“11 curriculum theory subjects, Total Obtained, Percentage, Grade, and Status) fit completely onto the page without horizontal cut-off or clipping.
    - Includes official candidate grading criteria and college authority signature blocks (Incharge Tabulation, Head of Department, Controller of Examinations).
    - Direct save to PDF for instant sharing with students via WhatsApp or printing for departmental noticeboards.
 
@@ -192,10 +194,19 @@ The project already contains everything required:
 - `db.php` (Database persistence manager with automatic schema creation and relational sync)
 - `schema.sql` (Database structure for optional phpMyAdmin import)
 - `api.php` (Central cloud persistence backend with dual-tier database + json failover)
-- `data.json` (Central database containing CIT students and curriculum, active as hot standby)
+- `data.json` & `data_backup.json` (Hot standby JSON persistent stores)
+- `data/` (Modular domain JSON storage: `students.json`, `datesheets.json`, `marks.json`, `teachers.json`, `sheet_locks.json`, `edit_requests.json`, `passouts.json`, `settings.json`)
 - `.htaccess` (Apache configuration: protects sensitive db files, disables directory listing, and prevents browser caching of live data)
-- `css/style.css` (Institutional UI styling & Landscape A4 PDF layouts)
-- `js/app.js` & `js/data.js` (Application logic and predefined course blueprints)
+- `css/style.css` (Institutional UI styling, award list layout & Landscape A4 PDF formats)
+- `js/` (Modular vanilla JavaScript architecture - zero build tools required, 100% cPanel friendly):
+  - `js/core/`: `icons.js` (SVG icons), `state.js` (global state & curriculum rules)
+  - `js/services/`: `api.js` (cloud & DB sync), `excel.js` (Excel sheet parsing & CSV export)
+  - `js/ui/`: `modal.js` (toast alerts, print modal, PDF generator, edit request modal)
+  - `js/auth/`: `login.js` (role toggle, credentials validation, session auth)
+  - `js/admin/`: `datesheets.js`, `results.js`, `students.js`, `teachers.js`, `marks.js`, `requests.js`, `settings.js`
+  - `js/teacher/`: `marks.js` (scoped marks entry & auto-lock), `subject_pdf.js` (single subject PDF award lists), `datesheets.js`
+  - `js/app.js`: Top-level router & application coordinator
+  - `js/data.js`: Predefined curriculum blueprints and seed rosters
 
 ---
 
@@ -212,7 +223,7 @@ The project already contains everything required:
 6. Delete the zip file after extraction.
 
 #### Method B: Automated 1-Click Deployment via Git Version Control
-1. In cPanel, search for and open **Git™ Version Control**.
+1. In cPanel, search for and open **Gitâ„¢ Version Control**.
 2. Click **Create** (blue button).
 3. Fill in:
    - **Clone URL:** `https://github.com/Abdul-Rasheed-Talal/Examination_Management_System.git`
@@ -239,7 +250,7 @@ The system is architected with a **Dual-Tier Resilient Storage** system:
    define('DB_PASS', 'YOUR_PASSWORD'); // Your MySQL password
    ```
 3. Save the file.
-4. **Automatic Table Setup:** The system automatically creates all 5 tables (`cit_app_store`, `cit_students`, `cit_datesheets`, `cit_marks`, `cit_settings`) and seeds them from `data.json` on the first request!
+4. **Automatic Table Setup:** The system automatically creates all 8 tables (`cit_app_store`, `cit_students`, `cit_datesheets`, `cit_marks`, `cit_settings`, `cit_teachers`, `cit_sheet_locks`, `cit_edit_requests`) and seeds them from `data.json` on the first request!
    *(Optional)* If you prefer manual setup, you can import `schema.sql` via the **Import** tab in phpMyAdmin.
 
 ---
@@ -286,6 +297,6 @@ To ensure that the secondary fallback (`data.json`) and rolling backups always w
    }
    ```
 3. Sign in to the portal:
-   - **Administrator:** `admin123` &rarr; Notice the header badge shows **`🟢 Cloud (DB)`**. In Admin **Settings & Passwords**, view the live **Database & Cloud Persistence** card and table counts!
+   - **Administrator:** `admin123` &rarr; Notice the header badge shows **`ðŸŸ¢ Cloud (DB)`**. In Admin **Settings & Passwords**, view the live **Database & Cloud Persistence** card and table counts!
    - **Subject Teacher:** `teacher123` &rarr; Enter marks for a subject and click **Save Marks Sheet**.
    - Open **phpMyAdmin**: click on `cit_students` or `cit_marks` to see your live records updated directly in MySQL!

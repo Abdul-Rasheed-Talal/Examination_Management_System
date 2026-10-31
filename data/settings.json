@@ -1,0 +1,44 @@
+{
+  "institution": {
+    "name": "Government College of Technology",
+    "department": "Department of Computer Information Technology (CIT)",
+    "subtitle": "Examination & Assessment Cell",
+    "city": "Bhakkar"
+  },
+  "currentSession": "2026-2027",
+  "passwords": {
+    "admin": "123@admin",
+    "teacher": "teacher123"
+  },
+  "classes": [
+    {
+      "id": "cit1",
+      "name": "CIT 1st Year"
+    },
+    {
+      "id": "cit2",
+      "name": "CIT 2nd Year"
+    },
+    {
+      "id": "cit3",
+      "name": "CIT 3rd Year"
+    }
+  ],
+  "examTypes": [
+    {
+      "id": "monthly",
+      "name": "Monthly Test",
+      "description": "20 Marks for every subject (Date only, no time slot)"
+    },
+    {
+      "id": "midterm",
+      "name": "Mid-Term Examination",
+      "description": "Full marks (50 / 75 / 100 per subject, Math Paper A & B)"
+    },
+    {
+      "id": "sendup",
+      "name": "Send-Up Examination (Sandup)",
+      "description": "Full marks (50 / 75 / 100 per subject, Math Paper A & B)"
+    }
+  ]
+}

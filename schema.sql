@@ -68,4 +68,53 @@ CREATE TABLE IF NOT EXISTS `cit_settings` (
   `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Configuration settings and metadata';
 
+-- -------------------------------------------------------------
+-- 6. Table structure for cit_teachers (Teacher Accounts & Assignments)
+-- -------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `cit_teachers` (
+  `id` VARCHAR(50) NOT NULL PRIMARY KEY,
+  `name` VARCHAR(150) NOT NULL COMMENT 'Teacher Full Name',
+  `username` VARCHAR(80) NOT NULL UNIQUE COMMENT 'Teacher Login Username',
+  `password` VARCHAR(255) NOT NULL COMMENT 'Teacher Login Password',
+  `assigned_classes` TEXT NULL COMMENT 'JSON array of class IDs, e.g. ["cit1","cit2"]',
+  `assigned_subjects` LONGTEXT NULL COMMENT 'JSON object of class-to-subject mappings',
+  `created_at` VARCHAR(50) NULL COMMENT 'Account creation date',
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX `idx_username` (`username`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Department teacher accounts & subject assignments';
+
+-- -------------------------------------------------------------
+-- 7. Table structure for cit_sheet_locks (Marks Sheet Lock Status)
+-- -------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `cit_sheet_locks` (
+  `lock_key` VARCHAR(150) NOT NULL PRIMARY KEY COMMENT 'Composite key: datesheet_id + _ + subject_code',
+  `datesheet_id` VARCHAR(100) NOT NULL,
+  `subject_code` VARCHAR(50) NOT NULL,
+  `is_locked` TINYINT(1) DEFAULT 1 COMMENT '1 = locked, 0 = unlocked',
+  `locked_by` VARCHAR(150) NULL COMMENT 'Teacher or admin who locked the sheet',
+  `locked_at` VARCHAR(50) NULL COMMENT 'Lock timestamp string',
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX `idx_lock_ds` (`datesheet_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Subject marksheet lock status';
+
+-- -------------------------------------------------------------
+-- 8. Table structure for cit_edit_requests (Marks Edit Unlock Requests)
+-- -------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `cit_edit_requests` (
+  `id` VARCHAR(50) NOT NULL PRIMARY KEY,
+  `datesheet_id` VARCHAR(100) NOT NULL,
+  `subject_code` VARCHAR(50) NOT NULL,
+  `class_id` VARCHAR(20) NOT NULL,
+  `teacher_username` VARCHAR(80) NOT NULL,
+  `teacher_name` VARCHAR(150) NULL,
+  `reason` TEXT NOT NULL COMMENT 'Teacher reason for editing locked marks',
+  `status` VARCHAR(20) DEFAULT 'pending' COMMENT 'pending, approved, rejected, completed',
+  `created_at` VARCHAR(50) NULL,
+  `reviewed_at` VARCHAR(50) NULL,
+  `reviewed_by` VARCHAR(80) NULL,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX `idx_req_status` (`status`),
+  INDEX `idx_req_teacher` (`teacher_username`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Marks edit permission requests submitted to administrator';
+
 SET FOREIGN_KEY_CHECKS = 1;

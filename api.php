@@ -34,6 +34,7 @@ $dbConfigFile = __DIR__ . '/db_config.php';
 $dbClassFile = __DIR__ . '/db.php';
 $dataFile = __DIR__ . '/data.json';
 $backupFile = __DIR__ . '/data_backup.json';
+$dataDir = __DIR__ . '/data';
 
 if (file_exists($dbConfigFile)) {
     require_once $dbConfigFile;
@@ -48,7 +49,7 @@ if (class_exists('CITDatabase')) {
     $db = new CITDatabase();
 }
 
-// Helper: Check file writability
+// Helper: Check file or directory writability
 function checkWritable($file) {
     if (file_exists($file)) {
         return is_writable($file);
@@ -56,38 +57,113 @@ function checkWritable($file) {
     return is_writable(dirname($file));
 }
 
-// Helper: Save to data.json with file locking and backup protection
-function writeToJsonFile($dataFile, $backupFile, array $data) {
-    // Create rolling backup copy
+// Helper: Safely write JSON content with strict OS file locking
+function writeAtomicJson($filePath, $content) {
+    $dir = dirname($filePath);
+    if (!is_dir($dir)) {
+        @mkdir($dir, 0775, true);
+    }
+    $fp = @fopen($filePath, 'c+');
+    if (!$fp) return false;
+    if (flock($fp, LOCK_EX)) {
+        ftruncate($fp, 0);
+        rewind($fp);
+        $encoded = is_string($content) ? $content : json_encode($content, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        $res = fwrite($fp, $encoded);
+        fflush($fp);
+        flock($fp, LOCK_UN);
+        fclose($fp);
+        return ($res !== false);
+    }
+    fclose($fp);
+    return false;
+}
+
+// Helper: Save both monolithic data.json and modular JSON files in data/
+function writeAllJsonStorage($dataFile, $backupFile, $dataDir, array $data) {
+    // 1. Create rolling backup copy of previous data.json
     if (file_exists($dataFile) && filesize($dataFile) > 100) {
         @copy($dataFile, $backupFile);
     }
 
-    $fp = @fopen($dataFile, 'c+');
-    if (!$fp) {
-        return [
-            "success" => false, 
-            "error" => "Permission denied opening data.json for writing. Check file permissions (664 / 666)."
-        ];
+    // 2. Primary JSON: write monolithic data.json
+    $mainSaved = writeAtomicJson($dataFile, $data);
+
+    // 3. Modular JSONs: synchronize individual domain files in data/ directory
+    if (!is_dir($dataDir)) {
+        @mkdir($dataDir, 0775, true);
     }
 
-    if (flock($fp, LOCK_EX)) {
-        ftruncate($fp, 0);
-        rewind($fp);
-        $jsonString = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-        $written = fwrite($fp, $jsonString);
-        fflush($fp);
-        flock($fp, LOCK_UN);
-        fclose($fp);
-
-        if ($written !== false) {
-            return ["success" => true, "bytes" => $written];
-        }
-    } else {
-        fclose($fp);
+    if (isset($data['students'])) {
+        writeAtomicJson($dataDir . '/students.json', $data['students']);
+    }
+    if (isset($data['datesheets'])) {
+        writeAtomicJson($dataDir . '/datesheets.json', $data['datesheets']);
+    }
+    if (isset($data['marks'])) {
+        writeAtomicJson($dataDir . '/marks.json', $data['marks']);
+    }
+    if (isset($data['teachers'])) {
+        writeAtomicJson($dataDir . '/teachers.json', $data['teachers']);
+    }
+    if (isset($data['sheetLocks'])) {
+        writeAtomicJson($dataDir . '/sheet_locks.json', $data['sheetLocks']);
+    }
+    if (isset($data['editRequests'])) {
+        writeAtomicJson($dataDir . '/edit_requests.json', $data['editRequests']);
+    }
+    if (isset($data['passouts'])) {
+        writeAtomicJson($dataDir . '/passouts.json', $data['passouts']);
     }
 
-    return ["success" => false, "error" => "Failed to acquire lock or write to data.json."];
+    // Modular settings bundle
+    $settings = [
+        'institution' => isset($data['institution']) ? $data['institution'] : [],
+        'currentSession' => isset($data['currentSession']) ? $data['currentSession'] : '2026-2027',
+        'passwords' => isset($data['passwords']) ? $data['passwords'] : [],
+        'classes' => isset($data['classes']) ? $data['classes'] : [],
+        'examTypes' => isset($data['examTypes']) ? $data['examTypes'] : []
+    ];
+    writeAtomicJson($dataDir . '/settings.json', $settings);
+
+    return [
+        "success" => $mainSaved,
+        "bytes" => file_exists($dataFile) ? filesize($dataFile) : 0,
+        "modular_synced" => true
+    ];
+}
+
+// Helper: Reconstruct full state from modular data/*.json if data.json is missing
+function readModularJsonState($dataDir) {
+    if (!is_dir($dataDir)) return null;
+
+    $settingsFile = $dataDir . '/settings.json';
+    if (!file_exists($settingsFile)) return null;
+
+    $settings = json_decode(@file_get_contents($settingsFile), true) ?: [];
+    $students = json_decode(@file_get_contents($dataDir . '/students.json'), true) ?: [];
+    $datesheets = json_decode(@file_get_contents($dataDir . '/datesheets.json'), true) ?: [];
+    $marks = json_decode(@file_get_contents($dataDir . '/marks.json'), true) ?: [];
+    $teachers = json_decode(@file_get_contents($dataDir . '/teachers.json'), true) ?: [];
+    $sheetLocks = json_decode(@file_get_contents($dataDir . '/sheet_locks.json'), true) ?: [];
+    $editRequests = json_decode(@file_get_contents($dataDir . '/edit_requests.json'), true) ?: [];
+    $passouts = json_decode(@file_get_contents($dataDir . '/passouts.json'), true) ?: [];
+
+    return array_merge($settings, [
+        'students' => $students,
+        'datesheets' => $datesheets,
+        'marks' => $marks,
+        'teachers' => $teachers,
+        'sheetLocks' => $sheetLocks,
+        'editRequests' => $editRequests,
+        'passouts' => $passouts
+    ]);
+}
+
+// Legacy helper wrapper for backward compatibility
+function writeToJsonFile($dataFile, $backupFile, array $data) {
+    global $dataDir;
+    return writeAllJsonStorage($dataFile, $backupFile, $dataDir, $data);
 }
 
 // Action: Server Health and Diagnostics Check
@@ -116,6 +192,12 @@ if (isset($_GET['action']) && $_GET['action'] === 'health') {
             "writable" => $jsonWritable,
             "size_bytes" => $jsonExists ? filesize($dataFile) : 0,
             "backup_exists" => file_exists($backupFile)
+        ],
+        "modular_storage" => [
+            "directory" => "data/",
+            "exists" => is_dir($dataDir),
+            "writable" => checkWritable($dataDir),
+            "files" => is_dir($dataDir) ? array_values(array_diff(scandir($dataDir), ['.', '..'])) : []
         ],
         "server_time" => date('Y-m-d H:i:s'),
         "php_version" => phpversion()
@@ -230,6 +312,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             echo $content;
             exit;
         }
+    }
+
+    // 3. Tertiary Fallback: Assemble from modular data/*.json files
+    $modularData = readModularJsonState($dataDir);
+    if ($modularData && !empty($modularData['classes'])) {
+        header('X-Storage-Source: Modular-JSON-Files-Fallback');
+        echo json_encode($modularData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        exit;
     }
 
     // Neither storage has valid data
