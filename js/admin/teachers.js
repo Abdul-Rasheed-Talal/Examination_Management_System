@@ -3,7 +3,8 @@
  * Handles Teacher CRUD operations, username/password provisioning, and fine-grained class/subject scoping.
  */
 
-let editingTeacherId = null;
+// Teacher edit state tracking
+editingTeacherId = null;
 
 function renderAdminTeachers(container) {
   const teachers = appData.teachers || [];

@@ -18,6 +18,7 @@ Designed specifically for **non-technical administrators and subject teachers**.
    | :--- | :--- | :--- |
    | **Administrator** | Password (`admin123` or custom) | Full departmental power: create users, assign classes/subjects, enter marks for any subject, lock/unlock sheets, approve edit requests, create date sheets, manage rosters, and configure settings. |
    | **Subject Teacher** | Assigned Username & Password | Enter marks only for assigned subjects and classes, download individual Subject Marks Sheet (Award List) PDFs separately, and submit edit requests when sheets are locked. |
+   | **Student** | Dedicated Route `cit.gctbhakkar.edu.pk/students` (Roll No Only) | View individual result cards (filtered by Monthly, Midterm, Send-Up), class ranking (#), weak subject diagnostic analysis, examination date sheet notice board, and print official Detailed Marks Certificates (DMC). |
 
    *(Both passwords can be changed at any time in the Admin Settings tab).*
 

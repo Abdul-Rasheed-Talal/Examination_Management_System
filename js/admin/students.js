@@ -4,10 +4,10 @@
  * alumni passouts archive, and annual session promotion / class rollover.
  */
 
-let rosterSearchQuery = '';
-let rosterSessionFilter = 'all';
-let passoutsSearchQuery = '';
-let passoutsSessionFilter = 'all';
+var rosterSearchQuery = '';
+var rosterSessionFilter = 'all';
+var passoutsSearchQuery = '';
+var passoutsSessionFilter = 'all';
 
 function renderAdminStudents(container) {
   const currentSession = appData.currentSession || "2026-2027";

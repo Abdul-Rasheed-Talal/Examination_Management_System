@@ -13,9 +13,18 @@ try {
   authTeacher = null;
 }
 
-var loginSelectedRole = 'teacher'; // 'admin' or 'teacher' on login screen
+var authStudent = null;
+try {
+  const cachedStudent = (typeof sessionStorage !== 'undefined') ? sessionStorage.getItem('cit_auth_student') : null;
+  if (cachedStudent) authStudent = JSON.parse(cachedStudent);
+} catch (e) {
+  authStudent = null;
+}
+
+var loginSelectedRole = 'teacher'; // 'teacher' or 'admin' on main faculty login screen
 var adminActiveTab = 'datesheets'; // 'datesheets', 'results', 'students', 'teachers', 'marks', 'requests', 'settings'
 var teacherActiveTab = 'marks'; // 'marks', 'subject_pdf', 'datesheet_pdf'
+var studentActiveTab = 'results'; // 'results', 'diagnostics', 'noticeboard'
 var activeRosterClass = 'cit1'; // 'cit1', 'cit2', 'cit3', or 'passouts'
 var editingTeacherId = null; // ID of teacher being edited in admin portal
 
@@ -37,25 +46,11 @@ function ensureAppDataIntegrity() {
     appData.editRequests = [];
   }
 
-  // Ensure default teacher exists if empty
-  if (!appData.teachers || !Array.isArray(appData.teachers) || appData.teachers.length === 0) {
-    const curRef = (typeof CIT_CURRICULUM !== 'undefined' ? CIT_CURRICULUM : null) || 
-                   (typeof window !== 'undefined' ? window.CIT_CURRICULUM : null);
-    appData.teachers = [
-      {
-        id: "tch_default",
-        name: "Engr. CIT Subject Teacher",
-        username: "teacher",
-        password: (appData.passwords && appData.passwords.teacher) ? appData.passwords.teacher : "teacher123",
-        assignedClasses: ["cit1", "cit2", "cit3"],
-        assignedSubjects: {
-          "cit1": curRef ? curRef.cit1.midterm.map(s => s.code) : ["GEN-111","TTQ-111","Eng-112","Math-123-A","Math-123-B","Phy-132","Ch-132","CIT-101","CIT-103","CIT-124","CIT-114"],
-          "cit2": curRef ? curRef.cit2.midterm.map(s => s.code) : ["Gen-211","TTQ-211","Math-223-A","Math-223-B","Mgm-211","CIT-203","CIT-273","CIT-222","CIT-283","CIT-293","CIT-204"],
-          "cit3": curRef ? curRef.cit3.midterm.map(s => s.code) : ["GEN-311","CIT-322","CIT-312","CIT-313","CIT-314","CIT-343","CIT-372"]
-        },
-        createdAt: "2026-10-31"
-      }
-    ];
+  // Ensure teachers array is valid and purge any guest/default accounts
+  if (!appData.teachers || !Array.isArray(appData.teachers)) {
+    appData.teachers = [];
+  } else {
+    appData.teachers = appData.teachers.filter(t => t.id !== 'tch_default' && t.username !== 'teacher');
   }
 
   // Ensure classes exist
@@ -186,13 +181,240 @@ function detectClassFromString(str) {
   return null;
 }
 
+/**
+ * Student Search by Roll Number across active rosters & passouts
+ * Enforces full roll number matching (e.g. 24-CIT-101, 25-CIT-102, 26-CIT-101)
+ * to prevent collisions where the same number (e.g. 101) exists across multiple classes.
+ * Suffix matching (e.g. 101) is only permitted if the specific class is explicitly selected.
+ */
+function findStudentByRoll(rollNo, optionalClassId = null) {
+  if (!rollNo || !appData || !appData.students) return null;
+  const raw = String(rollNo).trim();
+  const lower = raw.toLowerCase();
+  const normalized = lower.replace(/[^a-z0-9]/g, '');
+
+  if (!normalized) return null;
+
+  // Check if input is only 1-3 digits without year/session prefix (e.g. "101")
+  const isNumericOnly = /^\d+$/.test(normalized) && normalized.length <= 3;
+
+  // If numeric only and no class selected, it is ambiguous because roll 101, 102 etc. exist in 1st, 2nd, and 3rd year!
+  if (isNumericOnly && !optionalClassId) {
+    return {
+      ambiguous: true,
+      message: `Roll number "${raw}" exists in multiple classes (1st Year, 2nd Year, 3rd Year). Please enter your full roll number (e.g. 24-CIT-${raw} for 3rd Year, 25-CIT-${raw} for 2nd Year, 26-CIT-${raw} for 1st Year) or select your class from the dropdown.`
+    };
+  }
+
+  const checkList = optionalClassId ? [optionalClassId] : ['cit1', 'cit2', 'cit3'];
+
+  // 1. Primary: Exact full roll match (case/space/hyphen-insensitive)
+  for (const cId of checkList) {
+    const list = appData.students[cId] || [];
+    for (const st of list) {
+      if (!st.roll) continue;
+      const stLower = st.roll.toLowerCase();
+      const stNorm = stLower.replace(/[^a-z0-9]/g, '');
+
+      // Matches "24-cit-101" === "24-cit-101", "24cit101" === "24cit101", "24101" === "24101"
+      if (stLower === lower || stNorm === normalized || stNorm.replace('cit', '') === normalized.replace('cit', '')) {
+        const classObj = (appData.classes || []).find(c => c.id === cId);
+        return {
+          roll: st.roll,
+          name: st.name,
+          session: st.session || appData.currentSession || '2026-2027',
+          classId: cId,
+          className: classObj ? classObj.name : cId,
+          isPassout: false
+        };
+      }
+    }
+  }
+
+  // 2. Secondary: If a specific class was explicitly chosen, allow numeric suffix match (e.g. class is cit3 and entered 101)
+  if (optionalClassId && optionalClassId !== 'passouts') {
+    const list = appData.students[optionalClassId] || [];
+    for (const st of list) {
+      if (!st.roll) continue;
+      const stLower = st.roll.toLowerCase();
+      if (stLower.endsWith('-' + lower) || stLower.endsWith(lower)) {
+        const classObj = (appData.classes || []).find(c => c.id === optionalClassId);
+        return {
+          roll: st.roll,
+          name: st.name,
+          session: st.session || appData.currentSession || '2026-2027',
+          classId: optionalClassId,
+          className: classObj ? classObj.name : optionalClassId,
+          isPassout: false
+        };
+      }
+    }
+  }
+
+  // 3. Passouts archive (full roll match)
+  if (appData.passouts && Array.isArray(appData.passouts)) {
+    for (const st of appData.passouts) {
+      if (!st.roll) continue;
+      const stLower = st.roll.toLowerCase();
+      const stNorm = stLower.replace(/[^a-z0-9]/g, '');
+      if (stLower === lower || stNorm === normalized) {
+        return {
+          roll: st.roll,
+          name: st.name,
+          session: st.passoutSession || st.originalSession || 'Alumni',
+          classId: 'passouts',
+          className: 'Graduated / Alumni',
+          isPassout: true
+        };
+      }
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Retrieve all examination results for a specific student
+ */
+function getAllStudentResults(rollNo) {
+  if (!rollNo || !appData || !appData.datesheets) return [];
+  const studentInfo = findStudentByRoll(rollNo);
+  if (!studentInfo) return [];
+
+  const results = [];
+  const datesheets = (appData.datesheets || []).filter(ds => ds.classId === studentInfo.classId);
+
+  datesheets.forEach(ds => {
+    if (typeof evaluateDatesheetResults === 'function') {
+      const evalData = evaluateDatesheetResults(ds.id);
+      if (evalData && evalData.evaluatedRows) {
+        const studentRow = evalData.evaluatedRows.find(r => r.roll.toLowerCase() === studentInfo.roll.toLowerCase());
+        if (studentRow && studentRow.hasAnyMarks) {
+          results.push({
+            dsId: ds.id,
+            dsTitle: ds.title,
+            examType: ds.examType,
+            examTypeName: ds.examTypeName || (ds.examType === 'monthly' ? 'Monthly Test' : (ds.examType === 'midterm' ? 'Mid-Term Examination' : 'Send-Up Examination')),
+            session: ds.session,
+            classId: ds.classId,
+            className: studentInfo.className,
+            studentName: studentInfo.name,
+            roll: studentInfo.roll,
+            rank: studentRow.rank,
+            totalObtained: studentRow.totalObt,
+            totalMax: studentRow.totalMax,
+            percentage: studentRow.percentage,
+            grade: studentRow.grade,
+            status: studentRow.status,
+            entries: studentRow.entries || [],
+            evalData: evalData
+          });
+        }
+      }
+    }
+  });
+
+  return results;
+}
+
+/**
+ * Analyze subject performance for weak & strong areas
+ */
+function analyzeStudentStrengthsAndWeaknesses(studentResults) {
+  if (!studentResults || studentResults.length === 0) {
+    return {
+      weakSubjects: [],
+      borderlineSubjects: [],
+      strongSubjects: [],
+      overallAvg: 0,
+      totalExams: 0,
+      examsPassed: 0,
+      examsFailed: 0
+    };
+  }
+
+  const subjectAgg = {};
+
+  studentResults.forEach(res => {
+    (res.entries || []).forEach(entry => {
+      const code = entry.code;
+      if (!code) return;
+      if (!subjectAgg[code]) {
+        subjectAgg[code] = {
+          code: code,
+          title: entry.title || code,
+          totalObt: 0,
+          totalMax: 0,
+          attempts: 0,
+          fails: 0,
+          absents: 0,
+          scores: []
+        };
+      }
+
+      if (entry.val === 'ABS') {
+        subjectAgg[code].absents++;
+        subjectAgg[code].fails++;
+        subjectAgg[code].totalMax += entry.max;
+        subjectAgg[code].scores.push({ exam: res.dsTitle, pct: 0, isAbs: true });
+      } else if (typeof entry.val === 'number') {
+        subjectAgg[code].totalObt += entry.val;
+        subjectAgg[code].totalMax += entry.max;
+        subjectAgg[code].attempts++;
+        const pct = Math.round((entry.val / entry.max) * 100);
+        if (entry.isFail) subjectAgg[code].fails++;
+        subjectAgg[code].scores.push({ exam: res.dsTitle, pct: pct, isAbs: false });
+      }
+    });
+  });
+
+  const weakSubjects = [];
+  const borderlineSubjects = [];
+  const strongSubjects = [];
+
+  for (const code in subjectAgg) {
+    const item = subjectAgg[code];
+    const avgPct = item.totalMax > 0 ? Math.round((item.totalObt / item.totalMax) * 100) : 0;
+    item.avgPct = avgPct;
+
+    if (item.fails > 0 || avgPct < 40 || item.absents > 0) {
+      weakSubjects.push(item);
+    } else if (avgPct >= 40 && avgPct < 55) {
+      borderlineSubjects.push(item);
+    } else if (avgPct >= 70) {
+      strongSubjects.push(item);
+    }
+  }
+
+  weakSubjects.sort((a, b) => a.avgPct - b.avgPct);
+  borderlineSubjects.sort((a, b) => a.avgPct - b.avgPct);
+  strongSubjects.sort((a, b) => b.avgPct - a.avgPct);
+
+  const totalExams = studentResults.length;
+  const examsPassed = studentResults.filter(r => r.status === 'PASS').length;
+  const examsFailed = studentResults.filter(r => r.status === 'FAIL').length;
+  const overallAvg = Math.round(studentResults.reduce((sum, r) => sum + r.percentage, 0) / totalExams);
+
+  return {
+    weakSubjects,
+    borderlineSubjects,
+    strongSubjects,
+    overallAvg,
+    totalExams,
+    examsPassed,
+    examsFailed
+  };
+}
+
 if (typeof window !== 'undefined') {
   window.appData = appData;
   window.authRole = authRole;
   window.authTeacher = authTeacher;
+  window.authStudent = authStudent;
   window.loginSelectedRole = loginSelectedRole;
   window.adminActiveTab = adminActiveTab;
   window.teacherActiveTab = teacherActiveTab;
+  window.studentActiveTab = studentActiveTab;
   window.activeRosterClass = activeRosterClass;
   window.editingTeacherId = editingTeacherId;
   window.CIT_APP_STORAGE_VERSION = CIT_APP_STORAGE_VERSION;
@@ -210,4 +432,7 @@ if (typeof window !== 'undefined') {
   window.calculateNextSession = calculateNextSession;
   window.getNextSession = calculateNextSession;
   window.detectClassFromString = detectClassFromString;
+  window.findStudentByRoll = findStudentByRoll;
+  window.getAllStudentResults = getAllStudentResults;
+  window.analyzeStudentStrengthsAndWeaknesses = analyzeStudentStrengthsAndWeaknesses;
 }

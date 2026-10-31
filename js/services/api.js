@@ -3,6 +3,25 @@
  * Cloud Persistence, MySQL Sync & Server Communication Service
  */
 
+/**
+ * Resolves the relative path to backend API endpoints and static assets.
+ * Automatically handles sub-routes such as /students/ or /students/index.html.
+ * @param {string} endpoint - e.g. 'api.php', 'data.json'
+ * @returns {string} - Relative or absolute endpoint URL
+ */
+function getApiPath(endpoint = 'api.php') {
+  if (typeof window !== 'undefined' && window.API_BASE_PATH) {
+    return window.API_BASE_PATH + endpoint;
+  }
+  if (typeof window !== 'undefined' && window.location && window.location.pathname) {
+    const p = window.location.pathname.replace(/\\/g, '/').toLowerCase();
+    if (p.includes('/students')) {
+      return '../' + endpoint;
+    }
+  }
+  return endpoint;
+}
+
 function updateSyncBadge(text, state = 'online', tooltip = '') {
   const badge = document.getElementById('syncStatusBadge');
   const dot = document.getElementById('syncStatusDot');
@@ -24,7 +43,7 @@ async function loadInitialData() {
 
   // 1. Primary: Fetch live central database from api.php (cache-busted with timestamp)
   try {
-    const res = await fetch(`api.php?_t=${Date.now()}`, {
+    const res = await fetch(`${getApiPath('api.php')}?_t=${Date.now()}`, {
       headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
     });
     if (res.ok) {
@@ -42,7 +61,7 @@ async function loadInitialData() {
   // 1b. Fallback: If api.php returned 404, try static data.json
   if (!serverData) {
     try {
-      const res = await fetch(`data.json?_t=${Date.now()}`, {
+      const res = await fetch(`${getApiPath('data.json')}?_t=${Date.now()}`, {
         headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
       });
       if (res.ok) {
@@ -126,7 +145,7 @@ async function persistData() {
   // Sync with Server via api.php
   try {
     updateSyncBadge("Syncing...", "syncing", "Saving data to cloud server...");
-    const res = await fetch('api.php', {
+    const res = await fetch(getApiPath('api.php'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -178,7 +197,7 @@ async function checkDatabaseHealthAdmin() {
   box.innerHTML = `<span style="color:var(--text-muted);">${icon('refresh')} Querying api.php health diagnostics...</span>`;
 
   try {
-    const res = await fetch(`api.php?action=health&_t=${Date.now()}`);
+    const res = await fetch(`${getApiPath('api.php')}?action=health&_t=${Date.now()}`);
     if (!res.ok) throw new Error(`HTTP status ${res.status}`);
     const data = await res.json();
 
@@ -234,7 +253,7 @@ async function migrateDataJsonToDbAdmin() {
   showToast("Migrating data to MySQL database...");
 
   try {
-    const res = await fetch(`api.php?action=migrate_to_db&_t=${Date.now()}`);
+    const res = await fetch(`${getApiPath('api.php')}?action=migrate_to_db&_t=${Date.now()}`);
     const data = await res.json();
     if (res.ok && data.status === 'success') {
       showToast("Successfully migrated data into MySQL database!");
@@ -249,6 +268,7 @@ async function migrateDataJsonToDbAdmin() {
 }
 
 if (typeof window !== 'undefined') {
+  window.getApiPath = getApiPath;
   window.updateSyncBadge = updateSyncBadge;
   window.loadInitialData = loadInitialData;
   window.persistData = persistData;

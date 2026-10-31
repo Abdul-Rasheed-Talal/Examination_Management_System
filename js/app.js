@@ -4,8 +4,8 @@
  */
 
 // Tab state
-let adminActiveTab = 'datesheets';
-let teacherActiveTab = 'marks';
+var adminActiveTab = adminActiveTab || 'datesheets';
+var teacherActiveTab = teacherActiveTab || 'marks';
 
 /**
  * Set active Administrator tab and re-render
@@ -141,6 +141,10 @@ function renderApp() {
     }
   } else if (authRole === 'admin') {
     renderAdminPortal(container);
+  } else if (authRole === 'student') {
+    if (typeof renderStudentPortal === 'function') {
+      renderStudentPortal(container);
+    }
   } else {
     renderTeacherPortal(container);
   }

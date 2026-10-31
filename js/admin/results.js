@@ -70,7 +70,7 @@ function evaluateDatesheetResults(dsId) {
       const val = subMarks[st.roll];
 
       if (val === 'A' || val === 'a' || val === 'ABS') {
-        subjectEntries.push({ val: 'ABS', obt: 0, max: maxM, isFail: true });
+        subjectEntries.push({ code: sub.code, title: sub.title || sub.code, val: 'ABS', obt: 0, max: maxM, isFail: true });
         totalMax += maxM;
         hasFail = true;
         hasAnyMarks = true;
@@ -78,12 +78,12 @@ function evaluateDatesheetResults(dsId) {
         const num = parseFloat(val);
         const isF = num < (maxM * 0.4);
         if (isF) hasFail = true;
-        subjectEntries.push({ val: num, obt: num, max: maxM, isFail: isF });
+        subjectEntries.push({ code: sub.code, title: sub.title || sub.code, val: num, obt: num, max: maxM, isFail: isF });
         totalObt += num;
         totalMax += maxM;
         hasAnyMarks = true;
       } else {
-        subjectEntries.push({ val: '-', obt: 0, max: maxM, isFail: false });
+        subjectEntries.push({ code: sub.code, title: sub.title || sub.code, val: '-', obt: 0, max: maxM, isFail: false });
       }
     });
 

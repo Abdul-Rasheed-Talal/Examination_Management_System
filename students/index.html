@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Examination & Result Portal - CIT Department, GCT Bhakkar</title>
+  <meta name="description" content="Official Student Result, Examination Date Sheet and Performance Portal for CIT Students at Government College of Technology, Bhakkar.">
+  <meta name="theme-color" content="#0f172a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="stylesheet" href="../css/style.css?v=3.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Top Institutional Bar (Student Portal Edition) -->
+  <header class="app-header no-print">
+    <div class="header-container">
+      <div class="brand-area">
+        <a href="index.html" style="text-decoration:none; display:flex; align-items:center; gap:0.75rem; color:inherit;">
+          <div class="brand-badge" style="background:var(--primary);">CIT</div>
+          <div class="brand-text">
+            <div class="brand-title">
+              <span class="brand-title-full">Department of Computer Information Technology</span>
+              <span class="brand-title-short">CIT Department</span>
+            </div>
+            <div class="brand-sub">Government College of Technology, Bhakkar &bull; Student Portal</div>
+          </div>
+        </a>
+      </div>
+
+      <!-- Header Right: User Info & Sign Out (populated dynamically) -->
+      <div class="header-actions">
+        <div class="sync-status" id="syncStatusWrapper" title="Click to refresh live cloud data" onclick="syncWithServer(true)">
+          <span class="sync-dot online" id="syncStatusDot"></span>
+          <span id="syncStatusBadge">Cloud Synced</span>
+        </div>
+        <div id="headerAuthArea">
+          <!-- Injected dynamically: User badge or Faculty login link -->
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Dynamic Application Container -->
+  <main class="app-container" id="appRoot">
+    <div id="mainContentArea">
+      <div style="text-align: center; padding: 4rem 1rem; color: var(--text-muted);">
+        <p style="font-size: 1.15rem; font-weight: 600; margin-bottom: 0.5rem;">Loading CIT Student Examination Portal...</p>
+        <p style="font-size: 0.85rem;">Connecting to Central Academic Records & Date Sheets.</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="no-print" style="margin-top:auto; background:#0f172a; color:#94a3b8; font-size:0.8rem; text-align:center; padding:1.25rem 1rem; border-top:1px solid #334155;">
+    <div style="max-width:1200px; margin:0 auto; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
+      <div>
+        <b>CIT Student Portal</b> &bull; Government College of Technology, Bhakkar
+      </div>
+      <div>
+        Direct Access: <code>cit.gctbhakkar.edu.pk/students</code>
+      </div>
+      <div>
+        <a href="../index.html" style="color:#cbd5e1; text-decoration:none;">Faculty & Administrator Sign In &rarr;</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts: SheetJS, Core State, Domain Logic, Student Modules & Controller -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="../js/data.js?v=3.0"></script>
+  <script src="../js/core/icons.js?v=3.0"></script>
+  <script src="../js/core/state.js?v=3.0"></script>
+  <script src="../js/services/api.js?v=3.0"></script>
+  <script src="../js/services/excel.js?v=3.0"></script>
+  <script src="../js/ui/modal.js?v=3.0"></script>
+  <script src="../js/admin/results.js?v=3.0"></script>
+  <script src="../js/student/dashboard.js?v=3.0"></script>
+  <script src="../js/student/result_card.js?v=3.0"></script>
+  <script src="../js/student/noticeboard.js?v=3.0"></script>
+  <script src="../js/student/app.js?v=3.0"></script>
+</body>
+</html>
+

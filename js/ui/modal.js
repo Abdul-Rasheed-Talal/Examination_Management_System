@@ -477,6 +477,197 @@ async function submitEditRequest(dsId, subCode, classId) {
   }
 }
 
+function previewIndividualStudentResultCard(dsId, rollNo) {
+  if (!dsId || !rollNo) {
+    showToast("Invalid result selection.", true);
+    return;
+  }
+
+  const ds = (appData.datesheets || []).find(d => d.id === dsId);
+  if (!ds) {
+    showToast("Date sheet not found.", true);
+    return;
+  }
+
+  const evalData = evaluateDatesheetResults(dsId);
+  if (!evalData) {
+    showToast("Cannot evaluate result.", true);
+    return;
+  }
+
+  const studentRow = evalData.evaluatedRows.find(r => r.roll.toLowerCase() === rollNo.toLowerCase());
+  if (!studentRow) {
+    showToast("Student result not found for this examination.", true);
+    return;
+  }
+
+  const studentInfo = (typeof findStudentByRoll === 'function' ? findStudentByRoll(rollNo) : null) || { 
+    name: studentRow.name, 
+    roll: studentRow.roll, 
+    className: evalData.className, 
+    session: ds.session 
+  };
+  const institutionName = (appData.institution && appData.institution.name) || "Technical College";
+  const departmentName = (appData.institution && appData.institution.department) || "CIT Department";
+  const city = (appData.institution && appData.institution.city) || "";
+  const subtitle = (appData.institution && appData.institution.subtitle) || "Board of Technical Education";
+
+  const isPass = (studentRow.status === 'PASS');
+
+  createPrintModal(`
+    <div class="printable-student-card-container" style="max-width:760px; margin:0 auto; padding:15px; font-family:sans-serif; color:#000;">
+      <!-- Institutional Header -->
+      <div style="text-align:center; border-bottom:2px solid #000; padding-bottom:8px; margin-bottom:12px;">
+        <h2 style="font-size:15pt; font-weight:bold; margin:0 0 3px 0; text-transform:uppercase; letter-spacing:0.5px;">${institutionName}</h2>
+        <h3 style="font-size:12pt; font-weight:bold; margin:0 0 3px 0; color:#1e293b;">${departmentName}</h3>
+        <p style="font-size:8.5pt; color:#475569; margin:0;">${subtitle} &bull; ${city}</p>
+      </div>
+
+      <!-- Document Title -->
+      <div style="text-align:center; margin-bottom:14px;">
+        <h3 style="font-size:13pt; font-weight:bold; text-transform:uppercase; margin:0 0 4px 0; letter-spacing:0.8px;">
+          DETAILED MARKS CERTIFICATE / RESULT CARD
+        </h3>
+        <h4 style="font-size:11pt; color:var(--primary); font-weight:bold; margin:0;">
+          ${ds.title} &mdash; ${ds.session}
+        </h4>
+      </div>
+
+      <!-- Student Credentials Table -->
+      <table style="width:100%; border-collapse:collapse; margin-bottom:14px; font-size:8.5pt; border:1px solid #000;">
+        <tbody>
+          <tr>
+            <td style="padding:5px 8px; border:1px solid #000; width:20%; background:#f8fafc; font-weight:bold;">Student Name:</td>
+            <td style="padding:5px 8px; border:1px solid #000; width:30%; font-weight:bold; font-size:9pt;">${studentInfo.name}</td>
+            <td style="padding:5px 8px; border:1px solid #000; width:20%; background:#f8fafc; font-weight:bold;">Roll Number:</td>
+            <td style="padding:5px 8px; border:1px solid #000; width:30%; font-weight:bold; font-size:9pt; font-family:monospace;">${studentInfo.roll}</td>
+          </tr>
+          <tr>
+            <td style="padding:5px 8px; border:1px solid #000; background:#f8fafc; font-weight:bold;">Class / Program:</td>
+            <td style="padding:5px 8px; border:1px solid #000;">${studentInfo.className} (Theory)</td>
+            <td style="padding:5px 8px; border:1px solid #000; background:#f8fafc; font-weight:bold;">Academic Session:</td>
+            <td style="padding:5px 8px; border:1px solid #000;">${studentInfo.session}</td>
+          </tr>
+          <tr>
+            <td style="padding:5px 8px; border:1px solid #000; background:#f8fafc; font-weight:bold;">Class Position:</td>
+            <td style="padding:5px 8px; border:1px solid #000; font-weight:bold;">
+              ${typeof studentRow.rank === 'number' ? `${studentRow.rank}${studentRow.rank === 1 ? 'st Position' : (studentRow.rank === 2 ? 'nd Position' : (studentRow.rank === 3 ? 'rd Position' : 'th Rank'))}` : '-'}
+            </td>
+            <td style="padding:5px 8px; border:1px solid #000; background:#f8fafc; font-weight:bold;">Result Status:</td>
+            <td style="padding:5px 8px; border:1px solid #000; font-weight:bold; color:${isPass ? '#16a34a' : '#dc2626'};">
+              ${studentRow.status}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Tabular Subject Breakdown -->
+      <table style="width:100%; border-collapse:collapse; margin-bottom:14px; font-size:8.2pt; border:1px solid #000;">
+        <thead>
+          <tr style="background:#f1f5f9;">
+            <th style="border:1px solid #000; padding:5px 6px; width:35px; text-align:center;">#</th>
+            <th style="border:1px solid #000; padding:5px 6px; width:110px;">Subject Code</th>
+            <th style="border:1px solid #000; padding:5px 6px; text-align:left;">Theory Subject Title</th>
+            <th style="border:1px solid #000; padding:5px 6px; width:85px; text-align:center;">Max Marks</th>
+            <th style="border:1px solid #000; padding:5px 6px; width:95px; text-align:center;">Passing (40%)</th>
+            <th style="border:1px solid #000; padding:5px 6px; width:105px; text-align:center;">Obtained Marks</th>
+            <th style="border:1px solid #000; padding:5px 6px; width:90px; text-align:center;">Remarks</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${(studentRow.entries || []).map((e, idx) => {
+            const isAbs = (e.val === 'ABS');
+            const passMarks = Math.round(e.max * 0.4);
+            let displayVal = '-';
+            let remarks = 'Pending';
+            let remarksColor = '#64748b';
+
+            if (isAbs) {
+              displayVal = '<b style="color:#dc2626;">ABS</b>';
+              remarks = 'ABSENT';
+              remarksColor = '#dc2626';
+            } else if (typeof e.val === 'number') {
+              displayVal = `<b>${e.val}</b>`;
+              if (e.val >= passMarks) {
+                remarks = 'PASS';
+                remarksColor = '#16a34a';
+              } else {
+                remarks = 'FAIL';
+                remarksColor = '#dc2626';
+              }
+            }
+
+            return `
+              <tr>
+                <td style="border:1px solid #000; padding:4px 6px; text-align:center;">${idx + 1}</td>
+                <td style="border:1px solid #000; padding:4px 6px;"><b>${e.code || '-'}</b></td>
+                <td style="border:1px solid #000; padding:4px 6px;">${e.title || '-'}</td>
+                <td style="border:1px solid #000; padding:4px 6px; text-align:center;">${e.max}</td>
+                <td style="border:1px solid #000; padding:4px 6px; text-align:center;">${passMarks}</td>
+                <td style="border:1px solid #000; padding:4px 6px; text-align:center;">${displayVal}</td>
+                <td style="border:1px solid #000; padding:4px 6px; text-align:center; font-weight:bold; color:${remarksColor};">${remarks}</td>
+              </tr>
+            `;
+          }).join('')}
+        </tbody>
+        <tfoot>
+          <tr style="background:#f8fafc; font-weight:bold;">
+            <td colspan="3" style="border:1px solid #000; padding:6px 8px; text-align:right;">AGGREGATE TOTAL:</td>
+            <td style="border:1px solid #000; padding:6px; text-align:center;">${studentRow.totalMax}</td>
+            <td style="border:1px solid #000; padding:6px; text-align:center;">-</td>
+            <td style="border:1px solid #000; padding:6px; text-align:center; font-size:9.5pt; color:var(--primary);">${studentRow.totalObt}</td>
+            <td style="border:1px solid #000; padding:6px; text-align:center; font-size:9.5pt; color:${isPass ? '#16a34a' : '#dc2626'};">${studentRow.status}</td>
+          </tr>
+        </tfoot>
+      </table>
+
+      <!-- Grand Evaluation Award Summary Box -->
+      <div style="border:1px solid #000; background:#f8fafc; padding:8px 12px; margin-bottom:14px; display:flex; justify-content:space-around; text-align:center; font-size:8.5pt;">
+        <div>
+          <div style="color:#64748b; font-size:7.5pt; text-transform:uppercase;">Percentage</div>
+          <div style="font-size:12pt; font-weight:bold; color:#0369a1;">${studentRow.percentage}%</div>
+        </div>
+        <div>
+          <div style="color:#64748b; font-size:7.5pt; text-transform:uppercase;">Letter Grade</div>
+          <div style="font-size:12pt; font-weight:bold; color:#1e293b;">${studentRow.grade}</div>
+        </div>
+        <div>
+          <div style="color:#64748b; font-size:7.5pt; text-transform:uppercase;">Class Rank</div>
+          <div style="font-size:12pt; font-weight:bold; color:#16a34a;">${typeof studentRow.rank === 'number' ? studentRow.rank : '-'}</div>
+        </div>
+        <div>
+          <div style="color:#64748b; font-size:7.5pt; text-transform:uppercase;">Final Standing</div>
+          <div style="font-size:12pt; font-weight:bold; color:${isPass ? '#16a34a' : '#dc2626'};">${studentRow.status}</div>
+        </div>
+      </div>
+
+      <!-- Examination Regulations Note -->
+      <div style="border:1px solid #cbd5e1; padding:5px 8px; font-size:7.2pt; margin-bottom:20px; background:#f8fafc; border-radius:3px;">
+        <b>Examination Standard & Grading Policy:</b>
+        1. Minimum pass mark: 40% in each individual theory paper.
+        2. Grading Scale: A+ (&ge;80%), A (&ge;70%), B (&ge;60%), C (&ge;50%), D (&ge;40%), FAIL (&lt;40% or failed subject).
+        3. This Detailed Marks Certificate is issued under the authority of the CIT Examination Cell. Errors and omissions excepted.
+      </div>
+
+      <!-- Signature Blocks -->
+      <div class="signature-section" style="display:flex; justify-content:space-between; margin-top:35px; text-align:center;">
+        <div style="width:180px; border-top:1px dashed #000; padding-top:4px; font-size:7.5pt; font-weight:bold;">
+          Prepared & Verified By<br>
+          <small style="font-weight:normal;">Tabulation Incharge</small>
+        </div>
+        <div style="width:180px; border-top:1px dashed #000; padding-top:4px; font-size:7.5pt; font-weight:bold;">
+          Class Incharge / Mentor<br>
+          <small style="font-weight:normal;">CIT Department</small>
+        </div>
+        <div style="width:180px; border-top:1px dashed #000; padding-top:4px; font-size:7.5pt; font-weight:bold;">
+          Head of CIT Department<br>
+          <small style="font-weight:normal;">Technical College Directorate</small>
+        </div>
+      </div>
+    </div>
+  `, false);
+}
+
 function printTeacherResult() {
   const sel = document.getElementById('teacherResultSelect');
   const dsId = sel ? sel.value : null;
@@ -499,5 +690,6 @@ window.previewSubjectMarksSheet = previewSubjectMarksSheet;
 window.openEditRequestModal = openEditRequestModal;
 window.closeEditRequestModal = closeEditRequestModal;
 window.submitEditRequest = submitEditRequest;
+window.previewIndividualStudentResultCard = previewIndividualStudentResultCard;
 window.printTeacherResult = printTeacherResult;
 

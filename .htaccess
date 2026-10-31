@@ -39,3 +39,15 @@ AddDefaultCharset UTF-8
 
 # Ensure index.html loads by default
 DirectoryIndex index.html index.php
+
+# Clean URL Routing for Student Portal (cit.gctbhakkar.edu.pk/students)
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Route /students and /students/ to students/index.html (compatible with root domain and subfolder localhost)
+    RewriteRule ^students/?$ students/index.html [L,QSA]
+
+    # Allow transparent API & JSON fallback access from students path
+    RewriteRule ^students/api\.php$ api.php [L,QSA]
+    RewriteRule ^students/data\.json$ data.json [L,QSA]
+</IfModule>
