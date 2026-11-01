@@ -179,8 +179,15 @@ async function checkDatabaseHealthAdmin() {
         <div style="color:#b45309; font-weight:700; margin-bottom:0.4rem;">Status: Database Offline &mdash; Running on data.json Fallback</div>
         <div><b>Configured:</b> ${db.configured ? 'Yes' : 'No (Credentials needed in db_config.php)'}</div>
         <div><b>Database Name:</b> ${escapeHtml(db.database_name || 'Not set')}</div>
+        <div><b>Database User:</b> ${escapeHtml(db.user || 'Not set')}</div>
         ${db.error ? `<div style="color:#dc2626; margin-top:0.25rem;"><b>Reason:</b> ${escapeHtml(db.error)}</div>` : ''}
         <div style="margin-top:0.35rem; color:#15803d;"><b>data.json Status:</b> Writable & Ready (${Math.round((jsonStorage.size_bytes || 0)/1024)} KB)</div>
+        <div style="margin-top:0.5rem; padding:0.5rem; background:#fffbeb; border:1px solid #fef3c7; border-radius:4px; font-size:0.75rem; color:#92400e;">
+          <b>cPanel / CWP Troubleshooting Checklist:</b><br>
+          1. Verify in cPanel &rarr; MySQL Databases that the user exists with its full prefix (e.g. <code>gctbhakk_username</code>).<br>
+          2. Ensure the user is assigned to <code>${escapeHtml(db.database_name || 'database')}</code> under <b>Add User to Database</b> with <b>ALL PRIVILEGES</b>.<br>
+          3. Ensure the password in <code>db_config.php</code> matches the password assigned in cPanel.
+        </div>
       `;
     }
   } catch (e) {

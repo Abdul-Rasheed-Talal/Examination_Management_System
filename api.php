@@ -207,9 +207,9 @@ if (isset($_GET['action']) && $_GET['action'] === 'health') {
 
 // Action: Quick Test of Database Connection
 if (isset($_GET['action']) && $_GET['action'] === 'test_connect') {
-    $testUser = isset($_GET['user']) ? trim($_GET['user']) : (defined('DB_USER') ? DB_USER : 'gctbhakk');
+    $testUser = isset($_GET['user']) ? trim($_GET['user']) : (defined('DB_USER') ? DB_USER : '');
     $testPass = isset($_GET['pass']) ? trim($_GET['pass']) : (defined('DB_PASS') ? DB_PASS : '');
-    $testDb = isset($_GET['db']) ? trim($_GET['db']) : (defined('DB_NAME') ? DB_NAME : 'gctbhakk_examdb');
+    $testDb = isset($_GET['db']) ? trim($_GET['db']) : (defined('DB_NAME') ? DB_NAME : '');
     $testHost = defined('DB_HOST') ? DB_HOST : 'localhost';
 
     $result = [

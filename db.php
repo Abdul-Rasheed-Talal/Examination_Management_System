@@ -50,17 +50,17 @@ class CITDatabase {
         // Primary candidate from db_config.php
         $candidates = [DB_USER];
 
-        // Add common CWP account username variants automatically
-        $prefix = 'gctbhakk_';
-        $commonVariants = ['gctbhakk', $prefix . 'cit', $prefix . 'admin', $prefix . 'exam', $prefix . 'examuser', $prefix . 'user', 'cit', 'admin'];
-        foreach ($commonVariants as $cv) {
-            if (!in_array($cv, $candidates)) {
-                $candidates[] = $cv;
+        // If DB_NAME has a hosting/cPanel prefix (e.g. 'gctbhakk_examdb') and DB_USER lacks it,
+        // also try prefixing DB_USER (e.g. 'admin' -> 'gctbhakk_admin')
+        if (strpos(DB_NAME, '_') !== false) {
+            $prefix = substr(DB_NAME, 0, strpos(DB_NAME, '_') + 1);
+            if (!empty($prefix) && strpos(DB_USER, $prefix) !== 0) {
+                $candidates[] = $prefix . DB_USER;
             }
         }
 
-        $lastEx = null;
-        foreach ($candidates as $user) {
+        $primaryError = null;
+        foreach ($candidates as $idx => $user) {
             if (empty($user)) continue;
             try {
                 $this->pdo = new PDO($dsn, $user, DB_PASS, $options);
@@ -72,9 +72,13 @@ class CITDatabase {
                 $this->ensureSchemaAndData();
                 return;
             } catch (PDOException $e) {
-                $lastEx = $e;
-                // If the error is not 'Access denied' (e.g. unknown database, host error), stop trying
+                // Record the error for the primary configured user
+                if ($idx === 0) {
+                    $primaryError = $e->getMessage();
+                }
+                // If the error is not 'Access denied' (e.g. unknown database, host unreachable), do not continue
                 if (strpos($e->getMessage(), 'Access denied') === false && $e->getCode() != 1045) {
+                    $primaryError = $e->getMessage();
                     break;
                 }
             }
@@ -82,7 +86,7 @@ class CITDatabase {
 
         $this->pdo = null;
         $this->connected = false;
-        $this->lastError = $lastEx ? $lastEx->getMessage() : "Could not connect with configured credentials.";
+        $this->lastError = $primaryError ?: ("Access denied for user '" . DB_USER . "'@'" . DB_HOST . "'.");
     }
 
     public function getActiveUser() {
