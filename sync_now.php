@@ -97,3 +97,4 @@ echo json_encode([
     'active_app_js_sample' => trim((string)shell_exec("head -15 {$webRoot}/js/app.js 2>&1")),
     'active_state_js_check' => strpos((string)@file_get_contents($webRoot . '/js/core/state.js'), 'clean objects, never arrays') !== false ? 'Updated' : 'Old'
 ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+
