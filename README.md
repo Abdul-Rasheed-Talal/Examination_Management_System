@@ -301,3 +301,5 @@ To ensure that the secondary fallback (`data.json`) and rolling backups always w
    - **Administrator:** `admin123` &rarr; Notice the header badge shows **`ðŸŸ¢ Cloud (DB)`**. In Admin **Settings & Passwords**, view the live **Database & Cloud Persistence** card and table counts!
    - **Subject Teacher:** `teacher123` &rarr; Enter marks for a subject and click **Save Marks Sheet**.
    - Open **phpMyAdmin**: click on `cit_students` or `cit_marks` to see your live records updated directly in MySQL!
+
+Made with ❤️ by AbdulRasheed
