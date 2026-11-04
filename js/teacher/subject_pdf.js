@@ -64,6 +64,11 @@ function renderTeacherSubjectPdfDownload(container) {
     <div id="teacherSubjectPdfPreviewArea"></div>
   `;
 
+  const classSelect = document.getElementById('teacherPdfClassSelect');
+  if (classSelect && typeof teacherActiveSelectedClass !== 'undefined' && teacherActiveSelectedClass && teacherClasses.some(c => c.id === teacherActiveSelectedClass)) {
+    classSelect.value = teacherActiveSelectedClass;
+  }
+
   onTeacherPdfClassChange();
 }
 
@@ -71,6 +76,8 @@ function onTeacherPdfClassChange() {
   const classSelect = document.getElementById('teacherPdfClassSelect');
   if (!classSelect) return;
   const classId = classSelect.value;
+  if (typeof teacherActiveSelectedClass !== 'undefined') teacherActiveSelectedClass = classId;
+
   const datesheets = (appData.datesheets || []).filter(d => d.classId === classId);
   const dsSelect = document.getElementById('teacherPdfDsSelect');
   const subSelect = document.getElementById('teacherPdfSubSelect');
@@ -87,6 +94,10 @@ function onTeacherPdfClassChange() {
     dsSelect.innerHTML = datesheets.map(ds => `
       <option value="${ds.id}">${ds.title} (${ds.examTypeName || 'Exam'})</option>
     `).join('');
+
+    if (typeof teacherActiveSelectedDs !== 'undefined' && teacherActiveSelectedDs && datesheets.some(d => d.id === teacherActiveSelectedDs)) {
+      dsSelect.value = teacherActiveSelectedDs;
+    }
   }
 
   onTeacherPdfDsChange();
@@ -101,6 +112,7 @@ function onTeacherPdfDsChange() {
 
   const classId = classSelect.value;
   const dsId = dsSelect.value;
+  if (typeof teacherActiveSelectedDs !== 'undefined') teacherActiveSelectedDs = dsId;
   const ds = (appData.datesheets || []).find(d => d.id === dsId);
 
   if (!ds || !ds.items || ds.items.length === 0) {
@@ -128,6 +140,10 @@ function onTeacherPdfDsChange() {
     return `<option value="${s.code}">${s.code} &mdash; ${s.title} (${maxM} Marks)</option>`;
   }).join('');
 
+  if (typeof teacherActiveSelectedSub !== 'undefined' && teacherActiveSelectedSub && assignedSubs.some(s => s.code === teacherActiveSelectedSub)) {
+    subSelect.value = teacherActiveSelectedSub;
+  }
+
   loadTeacherSubjectPdfPreview();
 }
 
@@ -139,6 +155,7 @@ function loadTeacherSubjectPdfPreview() {
 
   const dsId = dsSelect.value;
   const subCode = subSelect.value;
+  if (typeof teacherActiveSelectedSub !== 'undefined') teacherActiveSelectedSub = subCode;
   if (!dsId || !subCode) {
     container.innerHTML = '';
     return;

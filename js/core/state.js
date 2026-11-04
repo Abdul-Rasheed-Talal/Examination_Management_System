@@ -41,6 +41,15 @@ function ensureAppDataIntegrity() {
   }
   if (!appData.sheetLocks || typeof appData.sheetLocks !== 'object') {
     appData.sheetLocks = {};
+  } else if (Array.isArray(appData.sheetLocks)) {
+    // If it was loaded or parsed as an array, cleanly migrate all attached string keys to an object
+    const cleanLocks = {};
+    for (const key of Object.keys(appData.sheetLocks)) {
+      if (isNaN(key) || (appData.sheetLocks[key] && typeof appData.sheetLocks[key] === 'object' && appData.sheetLocks[key].locked !== undefined)) {
+        cleanLocks[key] = appData.sheetLocks[key];
+      }
+    }
+    appData.sheetLocks = cleanLocks;
   }
   if (!appData.editRequests || !Array.isArray(appData.editRequests)) {
     appData.editRequests = [];
@@ -102,13 +111,21 @@ function isSubjectAssignedToTeacher(teacher, classId, subCode) {
 
 function isSheetLocked(dsId, subCode) {
   if (!appData || !appData.sheetLocks) return false;
-  const lock = appData.sheetLocks[`${dsId}_${subCode}`];
+  if (Array.isArray(appData.sheetLocks)) {
+    ensureAppDataIntegrity();
+  }
+  const key = `${(dsId || '').trim()}_${(subCode || '').trim()}`;
+  const lock = appData.sheetLocks[key];
   return Boolean(lock && lock.locked);
 }
 
 function getSheetLockInfo(dsId, subCode) {
   if (!appData || !appData.sheetLocks) return null;
-  return appData.sheetLocks[`${dsId}_${subCode}`] || null;
+  if (Array.isArray(appData.sheetLocks)) {
+    ensureAppDataIntegrity();
+  }
+  const key = `${(dsId || '').trim()}_${(subCode || '').trim()}`;
+  return appData.sheetLocks[key] || null;
 }
 
 function getPendingEditRequest(dsId, subCode) {

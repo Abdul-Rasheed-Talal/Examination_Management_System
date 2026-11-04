@@ -238,27 +238,38 @@ function toggleStudentAbsentAdmin(roll, isAbsent) {
 
 async function toggleSheetLockAdmin(dsId, subCode) {
   appData.sheetLocks = appData.sheetLocks || {};
-  const lockKey = `${dsId}_${subCode}`;
-  const currentlyLocked = isSheetLocked(dsId, subCode);
+  if (Array.isArray(appData.sheetLocks)) {
+    const clean = {};
+    for (const k of Object.keys(appData.sheetLocks)) {
+      if (isNaN(k) || (appData.sheetLocks[k] && typeof appData.sheetLocks[k] === 'object' && appData.sheetLocks[k].locked !== undefined)) {
+        clean[k] = appData.sheetLocks[k];
+      }
+    }
+    appData.sheetLocks = clean;
+  }
+  const cleanDsId = (dsId || '').trim();
+  const cleanSubCode = (subCode || '').trim();
+  const lockKey = `${cleanDsId}_${cleanSubCode}`;
+  const currentlyLocked = isSheetLocked(cleanDsId, cleanSubCode);
 
   if (currentlyLocked) {
     appData.sheetLocks[lockKey] = {
       locked: false,
       unlockedAt: new Date().toLocaleString(),
       unlockedBy: 'Administrator',
-      dsId: dsId,
-      subCode: subCode
+      dsId: cleanDsId,
+      subCode: cleanSubCode
     };
-    showToast(`Unlocked marks sheet for ${subCode}. Teachers can now edit marks.`);
+    showToast(`Unlocked marks sheet for ${cleanSubCode}. Teachers can now edit marks.`);
   } else {
     appData.sheetLocks[lockKey] = {
       locked: true,
       lockedAt: new Date().toLocaleString(),
       lockedBy: 'Administrator',
-      dsId: dsId,
-      subCode: subCode
+      dsId: cleanDsId,
+      subCode: cleanSubCode
     };
-    showToast(`Locked marks sheet for ${subCode}.`);
+    showToast(`Locked marks sheet for ${cleanSubCode}.`);
   }
 
   await persistData();

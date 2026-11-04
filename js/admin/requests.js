@@ -124,14 +124,25 @@ async function approveEditRequestAdmin(reqId) {
   req.reviewedBy = 'Administrator';
 
   appData.sheetLocks = appData.sheetLocks || {};
-  const lockKey = `${req.dsId}_${req.subCode}`;
+  if (Array.isArray(appData.sheetLocks)) {
+    const clean = {};
+    for (const k of Object.keys(appData.sheetLocks)) {
+      if (isNaN(k) || (appData.sheetLocks[k] && typeof appData.sheetLocks[k] === 'object' && appData.sheetLocks[k].locked !== undefined)) {
+        clean[k] = appData.sheetLocks[k];
+      }
+    }
+    appData.sheetLocks = clean;
+  }
+  const cleanDsId = (req.dsId || '').trim();
+  const cleanSubCode = (req.subCode || '').trim();
+  const lockKey = `${cleanDsId}_${cleanSubCode}`;
   appData.sheetLocks[lockKey] = {
     locked: false,
     unlockedAt: new Date().toLocaleString(),
     unlockedBy: 'Administrator',
     requestId: req.id,
-    dsId: req.dsId,
-    subCode: req.subCode
+    dsId: cleanDsId,
+    subCode: cleanSubCode
   };
 
   await persistData();

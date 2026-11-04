@@ -139,6 +139,20 @@ async function persistData() {
 
   ensureAppDataIntegrity();
 
+  // Double check that sheetLocks and marks are clean plain objects (never arrays) before serializing
+  if (Array.isArray(appData.sheetLocks)) {
+    const clean = {};
+    for (const k of Object.keys(appData.sheetLocks)) {
+      if (isNaN(k) || (appData.sheetLocks[k] && typeof appData.sheetLocks[k] === 'object' && appData.sheetLocks[k].locked !== undefined)) {
+        clean[k] = appData.sheetLocks[k];
+      }
+    }
+    appData.sheetLocks = clean;
+  }
+  if (Array.isArray(appData.marks)) {
+    appData.marks = {};
+  }
+
   // Immediate local cache
   localStorage.setItem('cit_system_data', JSON.stringify(appData));
 
@@ -180,8 +194,31 @@ async function syncWithServer(interactive = false) {
   if (interactive) {
     showToast("Checking live connection & refreshing cloud data...");
   }
+
+  // Snapshot active state fingerprint to avoid disruptive DOM re-renders if no cloud changes occurred
+  const prevFingerprint = JSON.stringify({
+    marks: appData ? appData.marks : null,
+    locks: appData ? appData.sheetLocks : null,
+    requests: appData ? appData.editRequests : null,
+    datesheets: appData ? (appData.datesheets ? appData.datesheets.length : 0) : 0,
+    teachers: appData ? (appData.teachers ? appData.teachers.length : 0) : 0
+  });
+
   await loadInitialData();
-  renderApp();
+
+  const newFingerprint = JSON.stringify({
+    marks: appData ? appData.marks : null,
+    locks: appData ? appData.sheetLocks : null,
+    requests: appData ? appData.editRequests : null,
+    datesheets: appData ? (appData.datesheets ? appData.datesheets.length : 0) : 0,
+    teachers: appData ? (appData.teachers ? appData.teachers.length : 0) : 0
+  });
+
+  // Only re-render if user clicked sync button or data actually changed on the server
+  if (interactive || prevFingerprint !== newFingerprint) {
+    renderApp();
+  }
+
   if (interactive) {
     const storageName = (activeStorageSource === 'database') ? 'Live MySQL Database' : 
                         (activeStorageSource === 'json_fallback' ? 'Cloud JSON File' : 'Offline Cache');

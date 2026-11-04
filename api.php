@@ -107,7 +107,8 @@ function writeAllJsonStorage($dataFile, $backupFile, $dataDir, array $data) {
         writeAtomicJson($dataDir . '/teachers.json', $data['teachers']);
     }
     if (isset($data['sheetLocks'])) {
-        writeAtomicJson($dataDir . '/sheet_locks.json', $data['sheetLocks']);
+        $locksToSave = (is_array($data['sheetLocks']) && empty($data['sheetLocks'])) ? (object)[] : $data['sheetLocks'];
+        writeAtomicJson($dataDir . '/sheet_locks.json', $locksToSave);
     }
     if (isset($data['editRequests'])) {
         writeAtomicJson($dataDir . '/edit_requests.json', $data['editRequests']);
@@ -143,9 +144,11 @@ function readModularJsonState($dataDir) {
     $settings = json_decode(@file_get_contents($settingsFile), true) ?: [];
     $students = json_decode(@file_get_contents($dataDir . '/students.json'), true) ?: [];
     $datesheets = json_decode(@file_get_contents($dataDir . '/datesheets.json'), true) ?: [];
-    $marks = json_decode(@file_get_contents($dataDir . '/marks.json'), true) ?: [];
+    $marksRaw = json_decode(@file_get_contents($dataDir . '/marks.json'), true);
+    $marks = (!is_array($marksRaw) || empty($marksRaw)) ? (object)[] : $marksRaw;
     $teachers = json_decode(@file_get_contents($dataDir . '/teachers.json'), true) ?: [];
-    $sheetLocks = json_decode(@file_get_contents($dataDir . '/sheet_locks.json'), true) ?: [];
+    $sheetLocksRaw = json_decode(@file_get_contents($dataDir . '/sheet_locks.json'), true);
+    $sheetLocks = (!is_array($sheetLocksRaw) || empty($sheetLocksRaw)) ? (object)[] : $sheetLocksRaw;
     $editRequests = json_decode(@file_get_contents($dataDir . '/edit_requests.json'), true) ?: [];
     $passouts = json_decode(@file_get_contents($dataDir . '/passouts.json'), true) ?: [];
 
@@ -348,6 +351,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             "message" => "Invalid JSON payload received."
         ]);
         exit;
+    }
+
+    // Prevent empty associative arrays from serializing as [] in json/db
+    if (isset($decoded['sheetLocks']) && is_array($decoded['sheetLocks']) && empty($decoded['sheetLocks'])) {
+        $decoded['sheetLocks'] = (object)[];
+    }
+    if (isset($decoded['marks']) && is_array($decoded['marks']) && empty($decoded['marks'])) {
+        $decoded['marks'] = (object)[];
     }
 
     $dbSaved = false;

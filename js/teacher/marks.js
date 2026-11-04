@@ -4,6 +4,10 @@
  * absentee tracking, and automatic sheet locking upon submission.
  */
 
+var teacherActiveSelectedClass = null;
+var teacherActiveSelectedDs = null;
+var teacherActiveSelectedSub = null;
+
 function renderTeacherMarksEntry(container) {
   const teacherClasses = (appData.classes || []).filter(c => {
     return !authTeacher || !authTeacher.assignedClasses || authTeacher.assignedClasses.length === 0 || authTeacher.assignedClasses.includes(c.id);
@@ -72,6 +76,11 @@ function renderTeacherMarksEntry(container) {
     </div>
   `;
 
+  const classSelect = document.getElementById('teacherClassSelect');
+  if (classSelect && teacherActiveSelectedClass && teacherClasses.some(c => c.id === teacherActiveSelectedClass)) {
+    classSelect.value = teacherActiveSelectedClass;
+  }
+
   onTeacherClassChange();
 }
 
@@ -79,6 +88,8 @@ function onTeacherClassChange() {
   const classSelect = document.getElementById('teacherClassSelect');
   if (!classSelect) return;
   const classId = classSelect.value;
+  teacherActiveSelectedClass = classId;
+
   const datesheets = (appData.datesheets || []).filter(d => d.classId === classId);
   const asmSelect = document.getElementById('teacherAssessmentSelect');
   const subSelect = document.getElementById('teacherSubjectSelect');
@@ -102,6 +113,10 @@ function onTeacherClassChange() {
     asmSelect.innerHTML = datesheets.map(ds => `
       <option value="${ds.id}">${ds.title} (${ds.examTypeName || 'Exam'})</option>
     `).join('');
+
+    if (teacherActiveSelectedDs && datesheets.some(d => d.id === teacherActiveSelectedDs)) {
+      asmSelect.value = teacherActiveSelectedDs;
+    }
   }
 
   onTeacherAssessmentChange();
@@ -116,6 +131,8 @@ function onTeacherAssessmentChange() {
 
   const classId = classSelect.value;
   const dsId = asmSelect.value;
+  teacherActiveSelectedDs = dsId;
+
   const ds = (appData.datesheets || []).find(d => d.id === dsId);
 
   if (!ds || !ds.items || ds.items.length === 0) {
@@ -145,6 +162,10 @@ function onTeacherAssessmentChange() {
     return `<option value="${s.code}">${s.code} &mdash; ${s.title} (${maxM} Marks)</option>`;
   }).join('');
 
+  if (teacherActiveSelectedSub && assignedSubs.some(s => s.code === teacherActiveSelectedSub)) {
+    subSelect.value = teacherActiveSelectedSub;
+  }
+
   renderTeacherMarksEntryTable();
 }
 
@@ -158,6 +179,7 @@ function renderTeacherMarksEntryTable() {
   const classId = classSelect.value;
   const dsId = asmSelect.value;
   const subCode = subSelect.value;
+  teacherActiveSelectedSub = subCode;
 
   const ds = (appData.datesheets || []).find(d => d.id === dsId);
   if (!ds || !subCode) {
@@ -449,19 +471,30 @@ async function saveTeacherMarks(dsId, subCode, maxMarks) {
 
   // LOCK THE MARKS SHEET AUTOMATICALLY UPON SUBMISSION
   appData.sheetLocks = appData.sheetLocks || {};
-  const lockKey = `${dsId}_${subCode}`;
+  if (Array.isArray(appData.sheetLocks)) {
+    const clean = {};
+    for (const k of Object.keys(appData.sheetLocks)) {
+      if (isNaN(k) || (appData.sheetLocks[k] && typeof appData.sheetLocks[k] === 'object' && appData.sheetLocks[k].locked !== undefined)) {
+        clean[k] = appData.sheetLocks[k];
+      }
+    }
+    appData.sheetLocks = clean;
+  }
+  const cleanDsId = (dsId || '').trim();
+  const cleanSubCode = (subCode || '').trim();
+  const lockKey = `${cleanDsId}_${cleanSubCode}`;
   appData.sheetLocks[lockKey] = {
     locked: true,
     lockedAt: new Date().toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
     lockedBy: authTeacher ? authTeacher.name : 'Teacher',
     lockedUsername: authTeacher ? authTeacher.username : 'teacher',
-    dsId: dsId,
-    subCode: subCode
+    dsId: cleanDsId,
+    subCode: cleanSubCode
   };
 
   if (appData.editRequests && Array.isArray(appData.editRequests)) {
     appData.editRequests.forEach(r => {
-      if (r.dsId === dsId && r.subCode === subCode && (r.status === 'approved' || r.status === 'pending')) {
+      if (r.dsId === cleanDsId && r.subCode === cleanSubCode && (r.status === 'approved' || r.status === 'pending')) {
         r.status = 'completed';
       }
     });

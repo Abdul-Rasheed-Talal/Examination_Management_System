@@ -1181,8 +1181,8 @@ body {
 
 @media print {
   @page {
-    size: A4 landscape;
-    margin: 4mm 5mm;
+    size: A4 portrait;
+    margin: 6mm 7mm;
   }
 
   /* Hide interactive navigation and controls */
@@ -1425,43 +1425,97 @@ body {
     font-weight: bold !important;
   }
 
-  /* Single Subject Marks Sheet / Award List Print Styles */
+  /* Single Subject Marks Sheet / Award List Print Styles (Strict Portrait Optimization) */
   .printable-subject-container {
     width: 100% !important;
     max-width: 100% !important;
-    margin: 0 !important;
+    margin: 0 auto !important;
     padding: 0 !important;
+    box-sizing: border-box !important;
+    font-size: 8pt !important;
   }
 
   .subject-award-table {
     width: 100% !important;
+    table-layout: fixed !important;
     border-collapse: collapse !important;
-    border: 1px solid #000 !important;
-    font-size: 7.5pt !important;
-    margin-bottom: 10px !important;
+    border: 1.5px solid #000 !important;
+    font-size: 8pt !important;
+    margin-bottom: 8px !important;
+    box-sizing: border-box !important;
+  }
+
+  .subject-award-table thead {
+    display: table-header-group !important;
+  }
+
+  .subject-award-table tbody {
+    display: table-row-group !important;
+  }
+
+  .subject-award-table tr {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
   }
 
   .subject-award-table th,
   .subject-award-table td {
     border: 1px solid #000 !important;
-    padding: 3px 5px !important;
+    padding: 3.5px 5px !important;
     color: #000 !important;
+    line-height: 1.2 !important;
+    word-break: break-word !important;
+    overflow: hidden !important;
   }
 
   .subject-award-table th {
-    background-color: #f1f5f9 !important;
+    background-color: #e2e8f0 !important;
     font-weight: bold !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
   .award-stats-box {
     border: 1px solid #000 !important;
-    background: #f8fafc !important;
-    padding: 6px 10px !important;
+    background: #f1f5f9 !important;
+    padding: 5px 8px !important;
     font-size: 7.5pt !important;
     display: flex !important;
     justify-content: space-between !important;
-    margin-top: 8px !important;
-    margin-bottom: 12px !important;
+    margin-top: 4px !important;
+    margin-bottom: 8px !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .award-meta-grid {
+    border: 1px solid #cbd5e1 !important;
+    background: #f8fafc !important;
+    padding: 5px 8px !important;
+    font-size: 7.8pt !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .signature-section {
+    display: flex !important;
+    justify-content: space-between !important;
+    margin-top: 25px !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  .sig-box {
+    text-align: center !important;
+    border-top: 1.5px dashed #000 !important;
+    width: 170px !important;
+    padding-top: 3px !important;
+    font-size: 7.5pt !important;
+    font-weight: bold !important;
   }
 }
 

@@ -261,7 +261,45 @@ class CITDatabase {
             $stmt->execute();
             $row = $stmt->fetch();
             if ($row && !empty($row['data_json'])) {
-                return $row['data_json'];
+                $rawJson = $row['data_json'];
+                $decoded = json_decode($rawJson, true);
+                if (is_array($decoded)) {
+                    $dirty = false;
+                    // Ensure sheetLocks is an object
+                    if (!isset($decoded['sheetLocks']) || !is_array($decoded['sheetLocks'])) {
+                        $decoded['sheetLocks'] = [];
+                    }
+                    // Harmonize with cit_sheet_locks relational table to guarantee persistent lock integrity
+                    try {
+                        $lockStmt = $this->pdo->query("SELECT * FROM `cit_sheet_locks`");
+                        if ($lockStmt) {
+                            $dbLocks = $lockStmt->fetchAll(PDO::FETCH_ASSOC);
+                            foreach ($dbLocks as $lRow) {
+                                $k = $lRow['lock_key'];
+                                if (!isset($decoded['sheetLocks'][$k])) {
+                                    $decoded['sheetLocks'][$k] = [
+                                        'locked' => ((int)$lRow['is_locked'] === 1),
+                                        'lockedBy' => $lRow['locked_by'],
+                                        'lockedAt' => $lRow['locked_at'],
+                                        'dsId' => $lRow['datesheet_id'],
+                                        'subCode' => $lRow['subject_code']
+                                    ];
+                                    $dirty = true;
+                                }
+                            }
+                        }
+                    } catch (PDOException $ignored) {}
+
+                    if (empty($decoded['sheetLocks'])) {
+                        $decoded['sheetLocks'] = (object)[];
+                        $dirty = true;
+                    }
+
+                    if ($dirty) {
+                        return json_encode($decoded, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+                    }
+                }
+                return $rawJson;
             }
         } catch (PDOException $e) {
             $this->lastError = "DB Read Error: " . $e->getMessage();
@@ -292,6 +330,13 @@ class CITDatabase {
         if (!$this->isConnected()) return false;
 
         try {
+            // Ensure sheetLocks and marks are never serialized as [] in cit_app_store
+            if (isset($data['sheetLocks']) && is_array($data['sheetLocks']) && empty($data['sheetLocks'])) {
+                $data['sheetLocks'] = (object)[];
+            }
+            if (isset($data['marks']) && is_array($data['marks']) && empty($data['marks'])) {
+                $data['marks'] = (object)[];
+            }
             $jsonString = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
             if (!$jsonString) {
                 $this->lastError = "Failed to encode data to JSON.";
@@ -457,9 +502,9 @@ class CITDatabase {
 
                 foreach ($data['sheetLocks'] as $key => $lockInfo) {
                     if (is_array($lockInfo) && isset($lockInfo['locked'])) {
-                        $parts = explode('_', $key, 2);
-                        $dsId = isset($lockInfo['dsId']) ? $lockInfo['dsId'] : (isset($parts[0]) ? $parts[0] : '');
-                        $subCode = isset($lockInfo['subCode']) ? $lockInfo['subCode'] : (isset($parts[1]) ? $parts[1] : '');
+                        $lastUnderscore = strrpos($key, '_');
+                        $dsId = !empty($lockInfo['dsId']) ? $lockInfo['dsId'] : ($lastUnderscore !== false ? substr($key, 0, $lastUnderscore) : $key);
+                        $subCode = !empty($lockInfo['subCode']) ? $lockInfo['subCode'] : ($lastUnderscore !== false ? substr($key, $lastUnderscore + 1) : '');
                         $lockStmt->execute([
                             ':lock_key' => $key,
                             ':datesheet_id' => $dsId,
