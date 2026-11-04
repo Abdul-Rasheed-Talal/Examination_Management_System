@@ -22,10 +22,10 @@ try {
 }
 
 var loginSelectedRole = 'teacher'; // 'teacher' or 'admin' on main faculty login screen
-var adminActiveTab = 'datesheets'; // 'datesheets', 'results', 'students', 'teachers', 'marks', 'requests', 'settings'
-var teacherActiveTab = 'marks'; // 'marks', 'subject_pdf', 'datesheet_pdf'
-var studentActiveTab = 'results'; // 'results', 'diagnostics', 'noticeboard'
-var activeRosterClass = 'cit1'; // 'cit1', 'cit2', 'cit3', or 'passouts'
+var adminActiveTab = (typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('cit_admin_active_tab') : null) || 'datesheets';
+var teacherActiveTab = (typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('cit_teacher_active_tab') : null) || 'marks';
+var studentActiveTab = (typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('cit_student_active_tab') : null) || 'results';
+var activeRosterClass = (typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('cit_active_roster_class') : null) || 'cit1';
 var editingTeacherId = null; // ID of teacher being edited in admin portal
 
 var CIT_APP_STORAGE_VERSION = 'v5_cit_excel_2026';
@@ -114,9 +114,19 @@ function isSheetLocked(dsId, subCode) {
   if (Array.isArray(appData.sheetLocks)) {
     ensureAppDataIntegrity();
   }
-  const key = `${(dsId || '').trim()}_${(subCode || '').trim()}`;
-  const lock = appData.sheetLocks[key];
-  return Boolean(lock && lock.locked);
+  const cleanDs = (dsId || '').trim();
+  const cleanSub = (subCode || '').trim();
+  const key = `${cleanDs}_${cleanSub}`;
+  if (appData.sheetLocks[key] && appData.sheetLocks[key].locked) {
+    return true;
+  }
+  const lowerKey = key.toLowerCase();
+  for (const k of Object.keys(appData.sheetLocks)) {
+    if (k.toLowerCase() === lowerKey && appData.sheetLocks[k] && appData.sheetLocks[k].locked) {
+      return true;
+    }
+  }
+  return false;
 }
 
 function getSheetLockInfo(dsId, subCode) {
@@ -124,8 +134,19 @@ function getSheetLockInfo(dsId, subCode) {
   if (Array.isArray(appData.sheetLocks)) {
     ensureAppDataIntegrity();
   }
-  const key = `${(dsId || '').trim()}_${(subCode || '').trim()}`;
-  return appData.sheetLocks[key] || null;
+  const cleanDs = (dsId || '').trim();
+  const cleanSub = (subCode || '').trim();
+  const key = `${cleanDs}_${cleanSub}`;
+  if (appData.sheetLocks[key]) {
+    return appData.sheetLocks[key];
+  }
+  const lowerKey = key.toLowerCase();
+  for (const k of Object.keys(appData.sheetLocks)) {
+    if (k.toLowerCase() === lowerKey && appData.sheetLocks[k]) {
+      return appData.sheetLocks[k];
+    }
+  }
+  return null;
 }
 
 function getPendingEditRequest(dsId, subCode) {

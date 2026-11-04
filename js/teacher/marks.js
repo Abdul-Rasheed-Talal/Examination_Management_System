@@ -4,9 +4,9 @@
  * absentee tracking, and automatic sheet locking upon submission.
  */
 
-var teacherActiveSelectedClass = null;
-var teacherActiveSelectedDs = null;
-var teacherActiveSelectedSub = null;
+var teacherActiveSelectedClass = (typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('cit_teacher_active_class') : null) || null;
+var teacherActiveSelectedDs = (typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('cit_teacher_active_ds') : null) || null;
+var teacherActiveSelectedSub = (typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('cit_teacher_active_sub') : null) || null;
 
 function renderTeacherMarksEntry(container) {
   const teacherClasses = (appData.classes || []).filter(c => {
@@ -89,6 +89,9 @@ function onTeacherClassChange() {
   if (!classSelect) return;
   const classId = classSelect.value;
   teacherActiveSelectedClass = classId;
+  if (typeof sessionStorage !== 'undefined') {
+    sessionStorage.setItem('cit_teacher_active_class', classId);
+  }
 
   const datesheets = (appData.datesheets || []).filter(d => d.classId === classId);
   const asmSelect = document.getElementById('teacherAssessmentSelect');
@@ -132,6 +135,9 @@ function onTeacherAssessmentChange() {
   const classId = classSelect.value;
   const dsId = asmSelect.value;
   teacherActiveSelectedDs = dsId;
+  if (typeof sessionStorage !== 'undefined') {
+    sessionStorage.setItem('cit_teacher_active_ds', dsId);
+  }
 
   const ds = (appData.datesheets || []).find(d => d.id === dsId);
 
@@ -180,6 +186,9 @@ function renderTeacherMarksEntryTable() {
   const dsId = asmSelect.value;
   const subCode = subSelect.value;
   teacherActiveSelectedSub = subCode;
+  if (typeof sessionStorage !== 'undefined') {
+    sessionStorage.setItem('cit_teacher_active_sub', subCode);
+  }
 
   const ds = (appData.datesheets || []).find(d => d.id === dsId);
   if (!ds || !subCode) {

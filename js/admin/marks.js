@@ -4,6 +4,7 @@
  */
 
 function renderAdminMarksEntry(container) {
+  const savedClass = (typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('cit_admin_marks_class') : null) || 'cit1';
   container.innerHTML = `
     <div class="card">
       <div class="card-header">
@@ -22,9 +23,9 @@ function renderAdminMarksEntry(container) {
             <div class="form-group">
               <label class="form-label">Step 1: Select Class</label>
               <select id="adminMarksClassSelect" class="form-select" onchange="onAdminMarksClassChange()">
-                <option value="cit1">CIT 1st Year</option>
-                <option value="cit2">CIT 2nd Year</option>
-                <option value="cit3">CIT 3rd Year</option>
+                <option value="cit1" ${savedClass === 'cit1' ? 'selected' : ''}>CIT 1st Year</option>
+                <option value="cit2" ${savedClass === 'cit2' ? 'selected' : ''}>CIT 2nd Year</option>
+                <option value="cit3" ${savedClass === 'cit3' ? 'selected' : ''}>CIT 3rd Year</option>
               </select>
             </div>
           </div>
@@ -58,6 +59,9 @@ function renderAdminMarksEntry(container) {
 
 function onAdminMarksClassChange() {
   const classId = document.getElementById('adminMarksClassSelect').value;
+  if (typeof sessionStorage !== 'undefined') {
+    sessionStorage.setItem('cit_admin_marks_class', classId);
+  }
   const datesheets = (appData.datesheets || []).filter(d => d.classId === classId);
   const asmSelect = document.getElementById('adminMarksAssessmentSelect');
 
@@ -72,15 +76,23 @@ function onAdminMarksClassChange() {
     return;
   }
 
+  const savedDs = (typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('cit_admin_marks_ds') : null);
   asmSelect.innerHTML = datesheets.map(ds => `
     <option value="${ds.id}">${ds.title} (${ds.examTypeName || 'Exam'})</option>
   `).join('');
+
+  if (savedDs && datesheets.some(d => d.id === savedDs)) {
+    asmSelect.value = savedDs;
+  }
 
   onAdminMarksDatesheetChange();
 }
 
 function onAdminMarksDatesheetChange() {
   const dsId = document.getElementById('adminMarksAssessmentSelect').value;
+  if (typeof sessionStorage !== 'undefined') {
+    sessionStorage.setItem('cit_admin_marks_ds', dsId);
+  }
   const ds = (appData.datesheets || []).find(d => d.id === dsId);
   const subSelect = document.getElementById('adminMarksSubjectSelect');
 
@@ -90,10 +102,15 @@ function onAdminMarksDatesheetChange() {
     return;
   }
 
+  const savedSub = (typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('cit_admin_marks_sub') : null);
   subSelect.innerHTML = ds.items.map(s => {
     const maxM = s.maxMarks || getSubjectMaxMarks(ds.classId, s.code, ds.examType);
     return `<option value="${s.code}">${s.code} &mdash; ${s.title} (${maxM} Marks)</option>`;
   }).join('');
+
+  if (savedSub && ds.items.some(s => s.code === savedSub)) {
+    subSelect.value = savedSub;
+  }
 
   renderAdminMarksTable();
 }
@@ -102,6 +119,9 @@ function renderAdminMarksTable() {
   const classId = document.getElementById('adminMarksClassSelect').value;
   const dsId = document.getElementById('adminMarksAssessmentSelect').value;
   const subCode = document.getElementById('adminMarksSubjectSelect').value;
+  if (typeof sessionStorage !== 'undefined' && subCode) {
+    sessionStorage.setItem('cit_admin_marks_sub', subCode);
+  }
   const container = document.getElementById('adminMarksTableArea');
 
   const ds = (appData.datesheets || []).find(d => d.id === dsId);
@@ -138,7 +158,7 @@ function renderAdminMarksTable() {
         <div class="banner-content">
           <b>${isLocked ? 'Marks Sheet is Currently LOCKED' : 'Marks Sheet is Currently UNLOCKED'}</b>
           <div style="font-size:0.8rem; color:${isLocked ? '#991b1b' : '#166534'};">
-            ${isLocked ? `Locked by ${lockInfo.lockedBy || 'Teacher'} on ${lockInfo.lockedAt || '-'}. Teachers cannot edit unless unlocked.` : 'Teachers with this subject assignment can freely enter or modify marks.'}
+            ${isLocked ? `Locked by ${(lockInfo && lockInfo.lockedBy) || 'Teacher'} on ${(lockInfo && lockInfo.lockedAt) || '-'}. Teachers cannot edit unless unlocked.` : 'Teachers with this subject assignment can freely enter or modify marks.'}
             &bull; Assigned Teacher: <b>${teacherNames}</b>
           </div>
         </div>

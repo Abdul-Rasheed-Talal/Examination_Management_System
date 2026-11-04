@@ -276,14 +276,18 @@ class CITDatabase {
                             $dbLocks = $lockStmt->fetchAll(PDO::FETCH_ASSOC);
                             foreach ($dbLocks as $lRow) {
                                 $k = $lRow['lock_key'];
-                                if (!isset($decoded['sheetLocks'][$k])) {
+                                $isLockedDb = ((int)$lRow['is_locked'] === 1);
+                                if (!isset($decoded['sheetLocks'][$k]) || !isset($decoded['sheetLocks'][$k]['locked'])) {
                                     $decoded['sheetLocks'][$k] = [
-                                        'locked' => ((int)$lRow['is_locked'] === 1),
-                                        'lockedBy' => $lRow['locked_by'],
-                                        'lockedAt' => $lRow['locked_at'],
-                                        'dsId' => $lRow['datesheet_id'],
-                                        'subCode' => $lRow['subject_code']
+                                        'locked' => $isLockedDb,
+                                        'lockedBy' => isset($lRow['locked_by']) ? $lRow['locked_by'] : '',
+                                        'lockedAt' => isset($lRow['locked_at']) ? $lRow['locked_at'] : '',
+                                        'dsId' => isset($lRow['datesheet_id']) ? $lRow['datesheet_id'] : '',
+                                        'subCode' => isset($lRow['subject_code']) ? $lRow['subject_code'] : ''
                                     ];
+                                    $dirty = true;
+                                } else if ((bool)$decoded['sheetLocks'][$k]['locked'] !== $isLockedDb) {
+                                    $decoded['sheetLocks'][$k]['locked'] = $isLockedDb;
                                     $dirty = true;
                                 }
                             }
@@ -548,7 +552,9 @@ class CITDatabase {
                 }
             }
 
-            $this->pdo->commit();
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->commit();
+            }
             return true;
         } catch (PDOException $e) {
             if ($this->pdo && $this->pdo->inTransaction()) {

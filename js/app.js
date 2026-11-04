@@ -3,9 +3,9 @@
  * Coordinates authentication state, tab navigation, sub-module rendering, and background synchronization.
  */
 
-// Tab state
-var adminActiveTab = adminActiveTab || 'datesheets';
-var teacherActiveTab = teacherActiveTab || 'marks';
+// Tab state (persisted across page refresh)
+var adminActiveTab = (typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('cit_admin_active_tab') : null) || 'datesheets';
+var teacherActiveTab = (typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('cit_teacher_active_tab') : null) || 'marks';
 
 /**
  * Set active Administrator tab and re-render
@@ -13,6 +13,9 @@ var teacherActiveTab = teacherActiveTab || 'marks';
  */
 function setAdminTab(tab) {
   adminActiveTab = tab;
+  if (typeof sessionStorage !== 'undefined') {
+    sessionStorage.setItem('cit_admin_active_tab', tab);
+  }
   renderApp();
 }
 
@@ -85,6 +88,9 @@ function renderAdminPortal(container) {
  */
 function setTeacherTab(tab) {
   teacherActiveTab = tab;
+  if (typeof sessionStorage !== 'undefined') {
+    sessionStorage.setItem('cit_teacher_active_tab', tab);
+  }
   renderApp();
 }
 
