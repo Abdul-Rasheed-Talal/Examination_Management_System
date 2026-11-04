@@ -20,7 +20,7 @@ AddDefaultCharset UTF-8
 
 # Prevent Browser Caching of JSON files and API endpoints so teachers and admin always see live cloud data
 <IfModule mod_headers.c>
-    <FilesMatch "\.(json|php)$">
+    <FilesMatch "\.(json|php|js|css)$">
         Header set Cache-Control "no-store, no-cache, must-revalidate, max-age=0, post-check=0, pre-check=0"
         Header set Pragma "no-cache"
         Header set Expires "Wed, 11 Jan 1984 05:00:00 GMT"

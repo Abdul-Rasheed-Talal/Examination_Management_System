@@ -13,6 +13,11 @@ function renderTeacherMarksEntry(container) {
     return !authTeacher || !authTeacher.assignedClasses || authTeacher.assignedClasses.length === 0 || authTeacher.assignedClasses.includes(c.id);
   });
 
+  const savedTeacherClass = (typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('cit_teacher_active_class') : null) || (teacherClasses[0] ? teacherClasses[0].id : 'cit1');
+  if (savedTeacherClass && teacherClasses.some(c => c.id === savedTeacherClass)) {
+    teacherActiveSelectedClass = savedTeacherClass;
+  }
+
   if (teacherClasses.length === 0) {
     container.innerHTML = `
       <div class="card">
@@ -47,7 +52,7 @@ function renderTeacherMarksEntry(container) {
             <div class="form-group">
               <label class="form-label">Step 1: Select Your Class</label>
               <select id="teacherClassSelect" class="form-select" onchange="onTeacherClassChange()">
-                ${teacherClasses.map(c => `<option value="${c.id}">${c.name}</option>`).join('')}
+                ${teacherClasses.map(c => `<option value="${c.id}" ${c.id === teacherActiveSelectedClass ? 'selected' : ''}>${c.name}</option>`).join('')}
               </select>
             </div>
           </div>
