@@ -441,8 +441,12 @@ async function saveTeacherMarks(dsId, subCode, maxMarks) {
   if (!appData.marks || Array.isArray(appData.marks) || typeof appData.marks !== 'object') {
     appData.marks = {};
   }
-  appData.marks[dsId] = appData.marks[dsId] || {};
-  appData.marks[dsId][subCode] = appData.marks[dsId][subCode] || {};
+  if (!appData.marks[dsId] || Array.isArray(appData.marks[dsId])) {
+    appData.marks[dsId] = {};
+  }
+  if (!appData.marks[dsId][subCode] || Array.isArray(appData.marks[dsId][subCode])) {
+    appData.marks[dsId][subCode] = {};
+  }
 
   let hasError = false;
   let enteredCount = 0;

@@ -38,6 +38,19 @@ function ensureAppDataIntegrity() {
   if (!appData.passwords) appData.passwords = { admin: "admin123", teacher: "teacher123" };
   if (!appData.marks || Array.isArray(appData.marks) || typeof appData.marks !== 'object') {
     appData.marks = {};
+  } else {
+    // Ensure nested dsId and subCode entries are clean objects, never arrays
+    for (const dsId of Object.keys(appData.marks)) {
+      if (Array.isArray(appData.marks[dsId])) {
+        appData.marks[dsId] = {};
+      } else if (appData.marks[dsId] && typeof appData.marks[dsId] === 'object') {
+        for (const subCode of Object.keys(appData.marks[dsId])) {
+          if (Array.isArray(appData.marks[dsId][subCode])) {
+            appData.marks[dsId][subCode] = {};
+          }
+        }
+      }
+    }
   }
   if (!appData.sheetLocks || typeof appData.sheetLocks !== 'object') {
     appData.sheetLocks = {};

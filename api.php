@@ -357,8 +357,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($decoded['sheetLocks']) && is_array($decoded['sheetLocks']) && empty($decoded['sheetLocks'])) {
         $decoded['sheetLocks'] = (object)[];
     }
-    if (isset($decoded['marks']) && is_array($decoded['marks']) && empty($decoded['marks'])) {
-        $decoded['marks'] = (object)[];
+    if (isset($decoded['marks']) && is_array($decoded['marks'])) {
+        if (empty($decoded['marks'])) {
+            $decoded['marks'] = (object)[];
+        } else {
+            foreach ($decoded['marks'] as $dsId => &$subs) {
+                if (is_array($subs)) {
+                    foreach ($subs as $subCode => &$rollMarks) {
+                        if (is_array($rollMarks) && empty($rollMarks)) {
+                            $rollMarks = (object)[];
+                        }
+                    }
+                    unset($rollMarks);
+                }
+            }
+            unset($subs);
+        }
     }
 
     $dbSaved = false;

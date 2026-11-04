@@ -338,8 +338,22 @@ class CITDatabase {
             if (isset($data['sheetLocks']) && is_array($data['sheetLocks']) && empty($data['sheetLocks'])) {
                 $data['sheetLocks'] = (object)[];
             }
-            if (isset($data['marks']) && is_array($data['marks']) && empty($data['marks'])) {
-                $data['marks'] = (object)[];
+            if (isset($data['marks']) && is_array($data['marks'])) {
+                if (empty($data['marks'])) {
+                    $data['marks'] = (object)[];
+                } else {
+                    foreach ($data['marks'] as $dsId => &$subs) {
+                        if (is_array($subs)) {
+                            foreach ($subs as $subCode => &$rollMarks) {
+                                if (is_array($rollMarks) && empty($rollMarks)) {
+                                    $rollMarks = (object)[];
+                                }
+                            }
+                            unset($rollMarks);
+                        }
+                    }
+                    unset($subs);
+                }
             }
             $jsonString = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
             if (!$jsonString) {

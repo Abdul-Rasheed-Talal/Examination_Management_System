@@ -151,6 +151,18 @@ async function persistData() {
   }
   if (Array.isArray(appData.marks)) {
     appData.marks = {};
+  } else if (appData.marks && typeof appData.marks === 'object') {
+    for (const dsId of Object.keys(appData.marks)) {
+      if (Array.isArray(appData.marks[dsId])) {
+        appData.marks[dsId] = {};
+      } else if (appData.marks[dsId] && typeof appData.marks[dsId] === 'object') {
+        for (const subCode of Object.keys(appData.marks[dsId])) {
+          if (Array.isArray(appData.marks[dsId][subCode])) {
+            appData.marks[dsId][subCode] = {};
+          }
+        }
+      }
+    }
   }
 
   // Immediate local cache
