@@ -1,6 +1,11 @@
 <?php
 $token = isset($_GET['token']) ? $_GET['token'] : '';
-if ($token !== 'cit_deploy_2026') die(json_encode(['error' => 'Unauthorized']));
+if ($token !== 'cit_deploy_2026') {
+    die(json_encode(['error' => 'Unauthorized']));
+}
+
+// Define the security constant before requiring db_config.php
+define('CIT_API_ENTRY', true);
 
 $target = '/home/gctbhakk/cit.gctbhakkar.edu.pk';
 
