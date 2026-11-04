@@ -1806,7 +1806,7 @@ body {
 
 .diagnostic-alert-card:hover {
   transform: translateY(-1px);
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 3px 8px rgb(153, 153, 153);
 }
 
 .diagnostic-weak {
