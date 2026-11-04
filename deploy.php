@@ -36,3 +36,4 @@ echo json_encode([
     'status' => 'done',
     'results' => $results
 ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+
